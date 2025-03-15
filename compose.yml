@@ -1,0 +1,37 @@
+services:
+
+  api:
+    build: 
+      context: ./modules/backend
+      dockerfile: Dockerfile.dev
+    environment:
+      DB_CONN_STR: postgres://postgres:s1cr1t@postgresql:5432/postgres
+    ports:
+      - 4004:4004
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:17.4
+    environment:
+      POSTGRES_PASSWORD: s1cr1t
+    healthcheck:
+      test: [ "CMD", "pg_isready" ,"-U", "postgres", "-h", "127.0.0.1", "-p", "5432" ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    ports:
+      - 5432:5432
+
+  web:
+    build:
+      context: ./modules/web
+      dockerfile: Dockerfile.dev
+    restart: always
+    volumes:
+      - ./modules/web/:/app
+      - /app/node_modules
+    ports:
+      - 5173:5173
+    depends_on:
+      - api
