@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom';
-import '../styles/OngoingSurveys.css';
+import { Link } from "react-router-dom";
+import "../styles/OngoingSurveys.css";
 import OngoingSurveySection from "../partials/OngoingSurveySection";
 
 const OngoingSurveys = () => {
@@ -50,4 +50,4 @@ const OngoingSurveys = () => {
   );
 };
 
-export default OngoingSurveys; 
+export default OngoingSurveys;

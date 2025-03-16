@@ -24,11 +24,9 @@
     "paths": {
         "/api/v1/user/profile": {
             "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
+                "security": [{
+                    "BearerAuth": []
+                }],
                 "description": "Get the profile of the authenticated user",
                 "consumes": [
                     "application/json"
@@ -126,17 +124,15 @@
                     "surveys"
                 ],
                 "summary": "Create a new survey",
-                "parameters": [
-                    {
-                        "description": "Survey data",
-                        "name": "survey",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/entity.Survey"
-                        }
+                "parameters": [{
+                    "description": "Survey data",
+                    "name": "survey",
+                    "in": "body",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/definitions/entity.Survey"
                     }
-                ],
+                }],
                 "responses": {
                     "201": {
                         "description": "Created",
@@ -174,15 +170,13 @@
                     "surveys"
                 ],
                 "summary": "Get a survey by Slug",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Survey Slug",
-                        "name": "slug",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
+                "parameters": [{
+                    "type": "string",
+                    "description": "Survey Slug",
+                    "name": "slug",
+                    "in": "path",
+                    "required": true
+                }],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -220,15 +214,13 @@
                     "survey-responses"
                 ],
                 "summary": "List all responses for a survey",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Survey Slug",
-                        "name": "slug",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
+                "parameters": [{
+                    "type": "string",
+                    "description": "Survey Slug",
+                    "name": "slug",
+                    "in": "path",
+                    "required": true
+                }],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -269,15 +261,13 @@
                     "survey-responses"
                 ],
                 "summary": "Start a new survey response",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Survey Slug",
-                        "name": "slug",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
+                "parameters": [{
+                    "type": "string",
+                    "description": "Survey Slug",
+                    "name": "slug",
+                    "in": "path",
+                    "required": true
+                }],
                 "responses": {
                     "201": {
                         "description": "Created",
@@ -315,8 +305,7 @@
                     "survey-responses"
                 ],
                 "summary": "Update a survey response",
-                "parameters": [
-                    {
+                "parameters": [{
                         "type": "string",
                         "description": "Survey Slug",
                         "name": "slug",
@@ -385,8 +374,7 @@
                     "survey-responses"
                 ],
                 "summary": "Complete a survey response",
-                "parameters": [
-                    {
+                "parameters": [{
                         "type": "string",
                         "description": "Survey Slug",
                         "name": "slug",
@@ -445,15 +433,13 @@
                     "survey-responses"
                 ],
                 "summary": "Get statistics for a survey",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Survey Slug",
-                        "name": "slug",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
+                "parameters": [{
+                    "type": "string",
+                    "description": "Survey Slug",
+                    "name": "slug",
+                    "in": "path",
+                    "required": true
+                }],
                 "responses": {
                     "200": {
                         "description": "OK",
