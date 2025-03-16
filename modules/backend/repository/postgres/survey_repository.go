@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/Masterminds/squirrel"
@@ -867,6 +868,20 @@ func (r *SurveyRepository) ListSurveysWithPagination(ctx context.Context, req *l
 	// Filter out expired surveys if requested
 	if filterReq != nil && filterReq.HideExpired {
 		baseQuery = baseQuery.Where("finishes_at IS NULL OR finishes_at > NOW()")
+	}
+
+	// Apply text search if provided
+	if filterReq != nil && filterReq.Search != "" {
+		// Create a tsquery from the search term
+		tsQuery := filterReq.Search
+		// Replace spaces with & for AND operations in the search
+		tsQuery = strings.ReplaceAll(tsQuery, " ", " & ")
+		// Add :* to each word for prefix matching
+		tsQuery = strings.ReplaceAll(tsQuery, " & ", ":* & ")
+		tsQuery = tsQuery + ":*"
+
+		// Apply the text search condition using to_tsvector and to_tsquery
+		baseQuery = baseQuery.Where("to_tsvector('simple', surveys.title || ' ' || surveys.description) @@ to_tsquery('simple', ?)", tsQuery)
 	}
 
 	// Apply sorting

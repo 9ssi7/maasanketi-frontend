@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Pagi from "../components/app/pagi";
 import State from "../components/app/state";
 import SurveyCard from "../components/app/survey/SurveyCard";
@@ -10,6 +11,7 @@ import { SurveySort } from "../types/survey.types";
 type Props = {
   tag?: string;
   sort?: SurveySort;
+  search?: string;
   hideExpired?: boolean;
 };
 
@@ -17,9 +19,12 @@ export default function OngoingSurveySection({
   tag,
   sort,
   hideExpired,
+  search,
 }: Props) {
+  const [page, setPage] = useState(1);
   const { data, isLoading, isError } = useQuery({
-    fetcher: () => surveyList(jsonToQuery({ tag, sort, hideExpired })),
+    fetcher: () =>
+      surveyList(jsonToQuery({ tag, sort, hideExpired, search, page })),
     dataMerger: listMerger,
   });
 
@@ -37,8 +42,9 @@ export default function OngoingSurveySection({
         )}
       </div>
       <Pagi
-        page={data?.page || 1}
+        page={page}
         nextPossible={data?.list?.length === data?.limit || false}
+        onChange={setPage}
       />
     </>
   );

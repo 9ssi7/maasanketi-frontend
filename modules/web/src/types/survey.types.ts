@@ -123,6 +123,7 @@ export enum SurveySort {
 export interface SurveyListRequest {
   tag?: string;
   sort?: SurveySort;
+  search?: string;
   hideExpired?: boolean;
 }
 

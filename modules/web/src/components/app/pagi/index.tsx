@@ -5,6 +5,7 @@ import "./pagi.css";
 type Props = {
   page: number;
   nextPossible: boolean;
+  onChange: (page: number) => void;
 };
 
 const getPageNumbers = (page: number): number[] => {
@@ -15,30 +16,30 @@ const getPageNumbers = (page: number): number[] => {
   return [page - 2, page - 1, page];
 };
 
-export default function Pagi({ page, nextPossible }: Props) {
+export default function Pagi({ page, nextPossible, onChange }: Props) {
   const numbers = getPageNumbers(page);
   return (
     <div className="pagination">
       <a
-        href={`?page=${page - 1}`}
         className={`pagination-button ${
           page <= 1 || numbers.some((n) => n === 1) ? "disabled" : ""
         }`}
+        onClick={() => onChange(page - 1)}
       >
         <AppIconChevronLeft />
       </a>
       {numbers.map((n) => (
         <a
           key={n}
-          href={`?page=${n}`}
           className={`pagination-button ${n === page ? "active" : ""}`}
+          onClick={() => onChange(n)}
         >
           {n}
         </a>
       ))}
       <a
-        href={`?page=${page + 1}`}
         className={`pagination-button ${!nextPossible ? "disabled" : ""}`}
+        onClick={() => onChange(page + 1)}
       >
         <AppIconChevronRight />
       </a>

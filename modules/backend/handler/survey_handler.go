@@ -133,6 +133,7 @@ type SurveySwaggerListResponse struct {
 // @Param tag query string false "Filter by tag"
 // @Param sort query string false "Sort field (created_at_asc, created_at_desc, most_participants, finishes_at_asc, finishes_at_desc)"
 // @Param hideExpired query bool false "Hide expired surveys"
+// @Param search query string false "Text search query for title and description"
 // @Success 200 {object} SurveySwaggerListResponse
 // @Failure 400 {object} map[string]interface{}
 // @Failure 500 {object} map[string]interface{}
