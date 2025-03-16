@@ -24,73 +24,6 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/v1/surveys": {
-            "get": {
-                "description": "Get all available surveys",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "surveys"
-                ],
-                "summary": "Get all surveys",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/handler.SurveyResponse"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/surveys/{id}": {
-            "get": {
-                "description": "Get a survey by its ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "surveys"
-                ],
-                "summary": "Get a survey by ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Survey ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/handler.SurveyResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/api/v1/user/profile": {
             "get": {
                 "security": [
@@ -627,6 +560,10 @@ const docTemplate = `{
                 "createdAt": {
                     "type": "string"
                 },
+                "createdBy": {
+                    "description": "Optional creator name",
+                    "type": "string"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -645,6 +582,52 @@ const docTemplate = `{
                 },
                 "slug": {
                     "type": "string"
+                },
+                "tags": {
+                    "description": "Optional tags for categorization",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "entity.SurveyListItem": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "createdBy": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "minCompletionTimeMin": {
+                    "type": "integer"
+                },
+                "participants": {
+                    "description": "Number of completed responses",
+                    "type": "integer"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "title": {
                     "type": "string"
@@ -698,17 +681,20 @@ const docTemplate = `{
                 }
             }
         },
-        "handler.SurveyResponse": {
+        "handler.SurveySwaggerListResponse": {
             "type": "object",
             "properties": {
-                "created_at": {
-                    "type": "string"
+                "limit": {
+                    "type": "integer"
                 },
-                "id": {
-                    "type": "string"
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.SurveyListItem"
+                    }
                 },
-                "title": {
-                    "type": "string"
+                "page": {
+                    "type": "integer"
                 }
             }
         },

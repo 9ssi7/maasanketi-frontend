@@ -56,7 +56,10 @@ type Survey struct {
 	Questions            []Question `json:"questions"`
 	CreatedAt            time.Time  `json:"createdAt"`
 	UpdatedAt            time.Time  `json:"updatedAt"`
+	FinishesAt           *time.Time `json:"finishesAt,omitempty"`
 	MinCompletionTimeMin int        `json:"minCompletionTimeMin"` // Minimum completion time in minutes
+	CreatedBy            *string    `json:"createdBy,omitempty"`  // Optional creator name
+	Tags                 []string   `json:"tags,omitempty"`       // Optional tags for categorization
 }
 
 // SurveyResponse represents a user's response to a survey
@@ -82,10 +85,16 @@ func (s *Survey) GenerateSlug() {
 
 // DefaultSurvey returns a default survey with predefined questions
 func DefaultSurvey() *Survey {
+	createdBy := "MaaşAnketi.co"
+	// Set finishes_at to 3 months from now
+	finishesAt := time.Now().AddDate(0, 3, 0)
 	return &Survey{
 		Title:                "Software Engineer Salary Survey",
 		Description:          "This survey collects anonymous data about software engineer salaries and working conditions.",
 		MinCompletionTimeMin: 3, // Minimum 3 minutes to complete the survey
+		CreatedBy:            &createdBy,
+		Tags:                 []string{"software", "engineering", "salary"},
+		FinishesAt:           &finishesAt,
 		Questions: []Question{
 			{
 				ID:       "employment_type",
@@ -368,4 +377,12 @@ func (sr *SurveyResponse) Complete(survey *Survey) error {
 
 	sr.IsCompleted = true
 	return nil
+}
+
+// IsExpired checks if the survey has expired
+func (s *Survey) IsExpired() bool {
+	if s.FinishesAt == nil {
+		return false // No expiration date means it never expires
+	}
+	return time.Now().After(*s.FinishesAt)
 }

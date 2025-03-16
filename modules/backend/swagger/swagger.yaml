@@ -53,6 +53,9 @@ definitions:
     properties:
       createdAt:
         type: string
+      createdBy:
+        description: Optional creator name
+        type: string
       description:
         type: string
       id:
@@ -66,6 +69,37 @@ definitions:
         type: array
       slug:
         type: string
+      tags:
+        description: Optional tags for categorization
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  entity.SurveyListItem:
+    properties:
+      createdAt:
+        type: string
+      createdBy:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      minCompletionTimeMin:
+        type: integer
+      participants:
+        description: Number of completed responses
+        type: integer
+      slug:
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
       title:
         type: string
       updatedAt:
@@ -101,14 +135,16 @@ definitions:
         description: Optional, for authenticated users
         type: string
     type: object
-  handler.SurveyResponse:
+  handler.SurveySwaggerListResponse:
     properties:
-      created_at:
-        type: string
-      id:
-        type: string
-      title:
-        type: string
+      limit:
+        type: integer
+      list:
+        items:
+          $ref: '#/definitions/entity.SurveyListItem'
+        type: array
+      page:
+        type: integer
     type: object
   handler.UserProfile:
     properties:
@@ -135,50 +171,6 @@ info:
   title: Software Engineer Salary Survey API
   version: "1.0"
 paths:
-  /api/v1/surveys:
-    get:
-      consumes:
-      - application/json
-      description: Get all available surveys
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/handler.SurveyResponse'
-            type: array
-      summary: Get all surveys
-      tags:
-      - surveys
-  /api/v1/surveys/{id}:
-    get:
-      consumes:
-      - application/json
-      description: Get a survey by its ID
-      parameters:
-      - description: Survey ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handler.SurveyResponse'
-        "404":
-          description: Not Found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Get a survey by ID
-      tags:
-      - surveys
   /api/v1/user/profile:
     get:
       consumes:

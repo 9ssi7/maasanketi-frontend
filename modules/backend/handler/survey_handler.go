@@ -8,6 +8,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/mstrYoda/maasanketi.co/entity"
+	"github.com/mstrYoda/maasanketi.co/pkg/list"
 	"github.com/mstrYoda/maasanketi.co/pkg/rescode"
 	"github.com/mstrYoda/maasanketi.co/repository"
 )
@@ -28,7 +29,7 @@ func NewSurveyHandler(surveyRepo repository.SurveyRepository) *SurveyHandler {
 func (h *SurveyHandler) RegisterRoutes(surveyGroup fiber.Router) {
 
 	//surveyGroup.Post("/", h.CreateSurvey) Survey  creation is not allowed for now
-	surveyGroup.Get("/", h.ListSurveys)
+	surveyGroup.Get("/", h.ListSurveysWithPagination)
 	surveyGroup.Get("/:slug", h.GetSurvey)
 
 	// Response routes
@@ -68,6 +69,18 @@ func (h *SurveyHandler) CreateSurvey(c *fiber.Ctx) error {
 		survey.Title = defaultSurvey.Title
 		survey.Description = defaultSurvey.Description
 		survey.MinCompletionTimeMin = defaultSurvey.MinCompletionTimeMin
+		survey.CreatedBy = defaultSurvey.CreatedBy
+		survey.Tags = defaultSurvey.Tags
+	}
+
+	// Initialize tags if nil
+	if survey.Tags == nil {
+		survey.Tags = []string{}
+	}
+
+	// Validate FinishesAt if provided
+	if survey.FinishesAt != nil && survey.FinishesAt.Before(time.Now()) {
+		return rescode.ValidationFailed(errors.New("finishes_at must be in the future"))
 	}
 
 	if err := h.surveyRepo.CreateSurvey(c.UserContext(), survey); err != nil {
@@ -103,7 +116,46 @@ func (h *SurveyHandler) GetSurvey(c *fiber.Ctx) error {
 	return c.JSON(survey)
 }
 
-// ListSurveys lists all surveys
+type SurveySwaggerListResponse struct {
+	Page  uint64                  `json:"page"`
+	Limit uint64                  `json:"limit"`
+	List  []entity.SurveyListItem `json:"list"`
+}
+
+// ListSurveysWithPagination lists all surveys with pagination and filtering
+// @Summary List all surveys with pagination and filtering
+// @Description List all available surveys with pagination, filtering, and sorting
+// @Tags surveys
+// @Accept json
+// @Produce json
+// @Param page query int false "Page number"
+// @Param limit query int false "Items per page"
+// @Param tag query string false "Filter by tag"
+// @Param sort query string false "Sort field (created_at_asc, created_at_desc, most_participants, finishes_at_asc, finishes_at_desc)"
+// @Param hideExpired query bool false "Hide expired surveys"
+// @Success 200 {object} SurveySwaggerListResponse
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /surveys [get]
+func (h *SurveyHandler) ListSurveysWithPagination(c *fiber.Ctx) error {
+	var pagi list.PagiRequest
+	if err := c.QueryParser(&pagi); err != nil {
+		return rescode.ValidationFailed(err)
+	}
+	var filter entity.SurveyListRequest
+	if err := c.QueryParser(&filter); err != nil {
+		return rescode.ValidationFailed(err)
+	}
+
+	response, err := h.surveyRepo.ListSurveysWithPagination(c.UserContext(), &pagi, &filter)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(response)
+}
+
+// ListSurveys lists all surveys (deprecated, use ListSurveysWithPagination instead)
 // @Summary List all surveys
 // @Description List all available surveys
 // @Tags surveys
@@ -113,7 +165,7 @@ func (h *SurveyHandler) GetSurvey(c *fiber.Ctx) error {
 // @Failure 500 {object} map[string]interface{}
 // @Router /surveys [get]
 func (h *SurveyHandler) ListSurveys(c *fiber.Ctx) error {
-	surveys, err := h.surveyRepo.ListSurveys(c.Context())
+	surveys, err := h.surveyRepo.ListSurveys(c.UserContext())
 	if err != nil {
 		return err
 	}
@@ -129,6 +181,7 @@ func (h *SurveyHandler) ListSurveys(c *fiber.Ctx) error {
 // @Produce json
 // @Param slug path string true "Survey Slug"
 // @Success 201 {object} entity.SurveyResponse
+// @Failure 400 {object} map[string]interface{}
 // @Failure 404 {object} map[string]interface{}
 // @Failure 500 {object} map[string]interface{}
 // @Router /surveys/{slug}/responses/start [post]
@@ -141,9 +194,14 @@ func (h *SurveyHandler) StartSurveyResponse(c *fiber.Ctx) error {
 	}
 
 	// Check if survey exists
-	_, err := h.surveyRepo.GetSurveyBySlug(c.Context(), surveySlug)
+	survey, err := h.surveyRepo.GetSurveyBySlug(c.Context(), surveySlug)
 	if err != nil {
 		return rescode.SurveyNotFound(errors.New("survey not found"))
+	}
+
+	// Check if survey has expired
+	if survey.IsExpired() {
+		return rescode.ValidationFailed(errors.New("survey has expired"))
 	}
 
 	// Create a new response
@@ -192,6 +250,17 @@ func (h *SurveyHandler) UpdateSurveyResponse(c *fiber.Ctx) error {
 
 	if _, err := uuid.Parse(responseID); err != nil {
 		return rescode.IDInvalid(errors.New("invalid response UUID format"))
+	}
+
+	// Get the survey
+	survey, err := h.surveyRepo.GetSurveyBySlug(c.Context(), surveySlug)
+	if err != nil {
+		return rescode.SurveyNotFound(errors.New("survey not found"))
+	}
+
+	// Check if survey has expired
+	if survey.IsExpired() {
+		return rescode.ValidationFailed(errors.New("survey has expired"))
 	}
 
 	// Get the existing response
@@ -252,6 +321,11 @@ func (h *SurveyHandler) CompleteSurveyResponse(c *fiber.Ctx) error {
 	survey, err := h.surveyRepo.GetSurveyBySlug(c.Context(), surveySlug)
 	if err != nil {
 		return rescode.SurveyNotFound(errors.New("survey not found"))
+	}
+
+	// Check if survey has expired
+	if survey.IsExpired() {
+		return rescode.ValidationFailed(errors.New("survey has expired"))
 	}
 
 	// Get the response

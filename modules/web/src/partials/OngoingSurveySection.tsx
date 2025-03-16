@@ -1,0 +1,45 @@
+import Pagi from "../components/app/pagi";
+import State from "../components/app/state";
+import SurveyCard from "../components/app/survey/SurveyCard";
+import { useQuery } from "../lib/hooks/query";
+import { listMerger } from "../lib/pagi";
+import { jsonToQuery } from "../services/base.api";
+import { surveyList } from "../services/survey.api";
+import { SurveySort } from "../types/survey.types";
+
+type Props = {
+  tag?: string;
+  sort?: SurveySort;
+  hideExpired?: boolean;
+};
+
+export default function OngoingSurveySection({
+  tag,
+  sort,
+  hideExpired,
+}: Props) {
+  const { data, isLoading, isError } = useQuery({
+    fetcher: () => surveyList(jsonToQuery({ tag, sort, hideExpired })),
+    dataMerger: listMerger,
+  });
+
+  if (isLoading) return <State.Loading />;
+
+  if (isError) return <State.Error data={data} />;
+
+  return (
+    <>
+      <div className="survey-list">
+        {data && data?.list?.length > 0 ? (
+          data?.list.map((survey) => <SurveyCard key={survey.id} {...survey} />)
+        ) : (
+          <State.Empty />
+        )}
+      </div>
+      <Pagi
+        page={data?.page || 1}
+        nextPossible={data?.list?.length === data?.limit || false}
+      />
+    </>
+  );
+}

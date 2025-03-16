@@ -12,6 +12,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/mstrYoda/maasanketi.co/entity"
+	"github.com/mstrYoda/maasanketi.co/pkg/list"
 	"github.com/mstrYoda/maasanketi.co/pkg/rescode"
 )
 
@@ -41,6 +42,11 @@ func (r *SurveyRepository) CreateSurvey(ctx context.Context, survey *entity.Surv
 		return rescode.Failed(err)
 	}
 
+	tagsJSON, err := json.Marshal(survey.Tags)
+	if err != nil {
+		return rescode.Failed(err)
+	}
+
 	// Parse UUID from string
 	surveyUUID, err := parseUUID(survey.ID)
 	if err != nil {
@@ -53,8 +59,8 @@ func (r *SurveyRepository) CreateSurvey(ctx context.Context, survey *entity.Surv
 	}
 
 	query := r.sb.Insert("surveys").
-		Columns("id", "slug", "title", "description", "questions", "min_completion_time_min", "created_at", "updated_at").
-		Values(surveyUUID, survey.Slug, survey.Title, survey.Description, questionsJSON, survey.MinCompletionTimeMin, survey.CreatedAt, survey.UpdatedAt)
+		Columns("id", "slug", "title", "description", "questions", "min_completion_time_min", "created_at", "updated_at", "created_by", "tags", "finishes_at").
+		Values(surveyUUID, survey.Slug, survey.Title, survey.Description, questionsJSON, survey.MinCompletionTimeMin, survey.CreatedAt, survey.UpdatedAt, survey.CreatedBy, tagsJSON, survey.FinishesAt)
 
 	sql, args, err := query.ToSql()
 	if err != nil {
@@ -77,7 +83,7 @@ func (r *SurveyRepository) GetSurveyByID(ctx context.Context, id string) (*entit
 		return nil, rescode.IDInvalid(err)
 	}
 
-	query := r.sb.Select("id", "slug", "title", "description", "questions", "min_completion_time_min", "created_at", "updated_at").
+	query := r.sb.Select("id", "slug", "title", "description", "questions", "min_completion_time_min", "created_at", "updated_at", "created_by", "tags", "finishes_at").
 		From("surveys").
 		Where(squirrel.Eq{"id": surveyUUID})
 
@@ -88,6 +94,7 @@ func (r *SurveyRepository) GetSurveyByID(ctx context.Context, id string) (*entit
 
 	var survey entity.Survey
 	var questionsJSON []byte
+	var tagsJSON []byte
 	var dbUUID uuid.UUID
 
 	err = r.db.QueryRow(ctx, sql, args...).Scan(
@@ -99,6 +106,9 @@ func (r *SurveyRepository) GetSurveyByID(ctx context.Context, id string) (*entit
 		&survey.MinCompletionTimeMin,
 		&survey.CreatedAt,
 		&survey.UpdatedAt,
+		&survey.CreatedBy,
+		&tagsJSON,
+		&survey.FinishesAt,
 	)
 
 	if err != nil {
@@ -115,12 +125,22 @@ func (r *SurveyRepository) GetSurveyByID(ctx context.Context, id string) (*entit
 		return nil, rescode.Failed(err)
 	}
 
+	err = json.Unmarshal(tagsJSON, &survey.Tags)
+	if err != nil {
+		return nil, rescode.Failed(err)
+	}
+
 	return &survey, nil
 }
 
 // UpdateSurvey updates a survey
 func (r *SurveyRepository) UpdateSurvey(ctx context.Context, survey *entity.Survey) error {
 	questionsJSON, err := json.Marshal(survey.Questions)
+	if err != nil {
+		return rescode.Failed(err)
+	}
+
+	tagsJSON, err := json.Marshal(survey.Tags)
 	if err != nil {
 		return rescode.Failed(err)
 	}
@@ -137,6 +157,9 @@ func (r *SurveyRepository) UpdateSurvey(ctx context.Context, survey *entity.Surv
 		Set("questions", questionsJSON).
 		Set("min_completion_time_min", survey.MinCompletionTimeMin).
 		Set("updated_at", survey.UpdatedAt).
+		Set("created_by", survey.CreatedBy).
+		Set("tags", tagsJSON).
+		Set("finishes_at", survey.FinishesAt).
 		Where(squirrel.Eq{"id": surveyUUID})
 
 	sql, args, err := query.ToSql()
@@ -185,7 +208,7 @@ func (r *SurveyRepository) DeleteSurvey(ctx context.Context, id string) error {
 
 // ListSurveys lists all surveys
 func (r *SurveyRepository) ListSurveys(ctx context.Context) ([]*entity.Survey, error) {
-	query := r.sb.Select("id", "slug", "title", "description", "questions", "min_completion_time_min", "created_at", "updated_at").
+	query := r.sb.Select("id", "slug", "title", "description", "questions", "min_completion_time_min", "created_at", "updated_at", "created_by", "tags", "finishes_at").
 		From("surveys").
 		OrderBy("created_at DESC")
 
@@ -205,6 +228,7 @@ func (r *SurveyRepository) ListSurveys(ctx context.Context) ([]*entity.Survey, e
 	for rows.Next() {
 		var survey entity.Survey
 		var questionsJSON []byte
+		var tagsJSON []byte
 		var dbUUID uuid.UUID
 
 		err := rows.Scan(
@@ -216,6 +240,9 @@ func (r *SurveyRepository) ListSurveys(ctx context.Context) ([]*entity.Survey, e
 			&survey.MinCompletionTimeMin,
 			&survey.CreatedAt,
 			&survey.UpdatedAt,
+			&survey.CreatedBy,
+			&tagsJSON,
+			&survey.FinishesAt,
 		)
 		if err != nil {
 			return nil, rescode.Failed(err)
@@ -224,6 +251,11 @@ func (r *SurveyRepository) ListSurveys(ctx context.Context) ([]*entity.Survey, e
 		survey.ID = dbUUID.String()
 
 		err = json.Unmarshal(questionsJSON, &survey.Questions)
+		if err != nil {
+			return nil, rescode.Failed(err)
+		}
+
+		err = json.Unmarshal(tagsJSON, &survey.Tags)
 		if err != nil {
 			return nil, rescode.Failed(err)
 		}
@@ -740,7 +772,7 @@ func parseFloat(s string) (float64, error) {
 
 // GetSurveyBySlug gets a survey by slug
 func (r *SurveyRepository) GetSurveyBySlug(ctx context.Context, slug string) (*entity.Survey, error) {
-	query := r.sb.Select("id", "slug", "title", "description", "questions", "min_completion_time_min", "created_at", "updated_at").
+	query := r.sb.Select("id", "slug", "title", "description", "questions", "min_completion_time_min", "created_at", "updated_at", "created_by", "tags", "finishes_at").
 		From("surveys").
 		Where(squirrel.Eq{"slug": slug})
 
@@ -751,6 +783,7 @@ func (r *SurveyRepository) GetSurveyBySlug(ctx context.Context, slug string) (*e
 
 	var survey entity.Survey
 	var questionsJSON []byte
+	var tagsJSON []byte
 	var dbUUID uuid.UUID
 
 	err = r.db.QueryRow(ctx, sql, args...).Scan(
@@ -762,6 +795,9 @@ func (r *SurveyRepository) GetSurveyBySlug(ctx context.Context, slug string) (*e
 		&survey.MinCompletionTimeMin,
 		&survey.CreatedAt,
 		&survey.UpdatedAt,
+		&survey.CreatedBy,
+		&tagsJSON,
+		&survey.FinishesAt,
 	)
 
 	if err != nil {
@@ -778,5 +814,143 @@ func (r *SurveyRepository) GetSurveyBySlug(ctx context.Context, slug string) (*e
 		return nil, rescode.Failed(err)
 	}
 
+	err = json.Unmarshal(tagsJSON, &survey.Tags)
+	if err != nil {
+		return nil, rescode.Failed(err)
+	}
+
 	return &survey, nil
+}
+
+// CountSurveyParticipants counts the number of completed responses for a survey
+func (r *SurveyRepository) CountSurveyParticipants(ctx context.Context, surveyID string) (int, error) {
+	// Parse UUID from string
+	surveyUUID, err := parseUUID(surveyID)
+	if err != nil {
+		return 0, rescode.IDInvalid(err)
+	}
+
+	query := r.sb.Select("COUNT(*)").
+		From("survey_responses").
+		Where(squirrel.Eq{"survey_id": surveyUUID, "is_completed": true})
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return 0, rescode.Failed(err)
+	}
+
+	var count int
+	err = r.db.QueryRow(ctx, sql, args...).Scan(&count)
+	if err != nil {
+		return 0, rescode.Failed(err)
+	}
+
+	return count, nil
+}
+
+// ListSurveysWithPagination lists surveys with pagination and filtering
+func (r *SurveyRepository) ListSurveysWithPagination(ctx context.Context, req *list.PagiRequest, filterReq *entity.SurveyListRequest) (*list.PagiResponse[*entity.SurveyListItem], error) {
+	// Set default values for pagination
+	req.Default()
+
+	// Build the base query
+	baseQuery := r.sb.Select("surveys.id", "surveys.slug", "surveys.title", "surveys.description", "surveys.min_completion_time_min", "surveys.created_at", "surveys.updated_at", "surveys.created_by", "surveys.tags", "surveys.finishes_at", "COUNT(survey_responses.id) AS participants").
+		LeftJoin("survey_responses ON surveys.id = survey_responses.survey_id").
+		From("surveys").
+		GroupBy("surveys.id")
+
+	// Apply tag filtering if provided
+	if filterReq != nil && len(filterReq.Tag) > 0 {
+		baseQuery = baseQuery.Where("tags @> ?", `["`+filterReq.Tag+`"]`)
+	}
+
+	// Filter out expired surveys if requested
+	if filterReq != nil && filterReq.HideExpired {
+		baseQuery = baseQuery.Where("finishes_at IS NULL OR finishes_at > NOW()")
+	}
+
+	// Apply sorting
+	if filterReq != nil && filterReq.Sort != "" {
+		switch filterReq.Sort {
+		case "created_at_asc":
+			baseQuery = baseQuery.OrderBy("surveys.created_at ASC")
+		case "created_at_desc":
+			baseQuery = baseQuery.OrderBy("surveys.created_at DESC")
+		case "most_participants":
+			baseQuery = baseQuery.OrderBy("participants DESC")
+		case "finishes_at_asc":
+			baseQuery = baseQuery.OrderBy("surveys.finishes_at ASC NULLS LAST")
+		case "finishes_at_desc":
+			baseQuery = baseQuery.OrderBy("surveys.finishes_at DESC NULLS LAST")
+		default:
+			baseQuery = baseQuery.OrderBy("surveys.created_at DESC") // Default sorting
+		}
+	} else {
+		baseQuery = baseQuery.OrderBy("surveys.created_at DESC") // Default sorting
+	}
+
+	baseQuery = baseQuery.Limit(*req.Limit).Offset(req.Offset())
+
+	sql, args, err := baseQuery.ToSql()
+	if err != nil {
+		return nil, rescode.Failed(err)
+	}
+
+	rows, err := r.db.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, rescode.Failed(err)
+	}
+	defer rows.Close()
+
+	var surveyItems []*entity.SurveyListItem
+
+	for rows.Next() {
+		var survey entity.Survey
+		var tagsJSON []byte
+		var participants int
+		var dbUUID uuid.UUID
+
+		err := rows.Scan(
+			&dbUUID,
+			&survey.Slug,
+			&survey.Title,
+			&survey.Description,
+			&survey.MinCompletionTimeMin,
+			&survey.CreatedAt,
+			&survey.UpdatedAt,
+			&survey.CreatedBy,
+			&tagsJSON,
+			&survey.FinishesAt,
+			&participants,
+		)
+		if err != nil {
+			return nil, rescode.Failed(err)
+		}
+
+		survey.ID = dbUUID.String()
+
+		err = json.Unmarshal(tagsJSON, &survey.Tags)
+		if err != nil {
+			return nil, rescode.Failed(err)
+		}
+
+		// Convert to list item
+		listItem := survey.ToListItem(participants)
+		listItem.FinishesAt = survey.FinishesAt
+
+		surveyItems = append(surveyItems, listItem)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, rescode.Failed(err)
+	}
+
+	// Create pagination response
+	response := &list.PagiResponse[*entity.SurveyListItem]{
+		Page:  *req.Page,
+		Limit: *req.Limit,
+		List:  surveyItems,
+	}
+
+	return response, nil
 }

@@ -12,6 +12,8 @@ services:
       - 4004:4004
     depends_on:
       - postgres
+    networks:
+      - maasanketi-network
 
   postgres:
     image: postgres:17.4
@@ -26,13 +28,13 @@ services:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - 5432:5432
+    networks:
+      - maasanketi-network
 
   web:
     build:
       context: ./modules/web
       dockerfile: Dockerfile.dev
-    env_file:
-      - ./modules/web/.env.dev
     restart: always
     volumes:
       - ./modules/web/:/app
@@ -41,7 +43,13 @@ services:
       - 5173:5173
     depends_on:
       - api
+    networks:
+      - maasanketi-network
 
 volumes:
   postgres_data:
     name: maasanketi-postgres-data 
+
+networks:
+  maasanketi-network:
+    driver: bridge

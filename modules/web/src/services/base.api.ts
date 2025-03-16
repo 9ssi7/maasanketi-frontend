@@ -1,8 +1,6 @@
 import type { ApiError, NotFoundError, TooManyRequestsError } from "./error";
 
-export const ApiUrl = !globalThis.window
-	? import.meta.env.API_BASE_API_URL
-	: import.meta.env.PUBLIC_BASE_API_URL;
+export const ApiUrl = import.meta.env.VITE_BASE_API_URL;
 
 type StateHandler = (response: Response) => [ApiError, number];
 
@@ -41,7 +39,7 @@ export async function req<T = unknown>(
 	}
 	const response = await fetch(`${ApiUrl}/${endpoint}`, {
 		...options,
-		credentials: "include",
+		//credentials: "include",
 
 		headers: {
 			...options.headers,
