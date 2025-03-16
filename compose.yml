@@ -5,7 +5,7 @@ services:
       context: ./modules/backend
       dockerfile: Dockerfile.dev
     environment:
-      DB_CONN_STR: postgres://postgres:s1cr1t@postgresql:5432/postgres
+      DB_CONN_STR: postgres://postgres:s1cr1t@postgres:5432/postgres
     ports:
       - 4004:4004
     depends_on:
