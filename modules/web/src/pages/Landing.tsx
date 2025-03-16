@@ -20,8 +20,8 @@ const Landing = () => {
             Create, participate, and explore software engineering compensation trends.
           </p>
           <div className="hero-buttons">
-            <Link to="/create-survey" className="primary-button">
-              Create Survey
+            <Link to="/ongoing-surveys" className="primary-button">
+              Participate Now
             </Link>
             <Link to="/results" className="secondary-button">
               Explore Data

@@ -10,6 +10,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5/pgxpool"
 	log "github.com/mstrYoda/maasanketi.co/pkg/logger"
+	"github.com/mstrYoda/maasanketi.co/repository/postgres"
 )
 
 var (
@@ -18,6 +19,9 @@ var (
 
 type Repository struct {
 	pool *pgxpool.Pool
+
+	// Repositories
+	Survey SurveyRepository
 }
 
 func New() (*Repository, error) {
@@ -50,9 +54,14 @@ func New() (*Repository, error) {
 		return nil, errors.New("unable to ping database: " + err.Error())
 	}
 
-	return &Repository{
+	repo := &Repository{
 		pool: pool,
-	}, nil
+	}
+
+	// Initialize repositories
+	repo.Survey = postgres.NewSurveyRepository(pool)
+
+	return repo, nil
 }
 
 func (r *Repository) Close() {
