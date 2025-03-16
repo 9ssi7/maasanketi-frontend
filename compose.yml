@@ -6,6 +6,8 @@ services:
       dockerfile: Dockerfile.dev
     environment:
       DB_CONN_STR: postgres://postgres:s1cr1t@postgres:5432/postgres
+    volumes:
+      - ./modules/backend:/app
     ports:
       - 4004:4004
     depends_on:
@@ -20,6 +22,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 20
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     ports:
       - 5432:5432
 
@@ -37,3 +41,7 @@ services:
       - 5173:5173
     depends_on:
       - api
+
+volumes:
+  postgres_data:
+    name: maasanketi-postgres-data 

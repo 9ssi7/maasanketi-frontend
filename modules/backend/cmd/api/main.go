@@ -39,11 +39,9 @@ func (a *Application) Register() {
 	// API v1 routes
 	v1 := a.app.Group("/api/v1")
 
-	// Survey routes
-	surveys := v1.Group("/surveys")
-	surveys.Get("/", handler.GetSurveys)
-	surveys.Get("/:id", handler.GetSurvey)
-
+	// Register survey handler
+	surveyHandler := handler.NewSurveyHandler(a.repo.Survey)
+	surveyHandler.RegisterRoutes(v1.Group("/surveys"))
 	// Protected routes (require authentication)
 	user := v1.Group("/user")
 	user.Use(middleware.GoogleAuth()) // Apply Google authentication middleware
@@ -76,8 +74,9 @@ func main() {
 	defer repo.Close()
 
 	app := fiber.New(fiber.Config{
-		JSONEncoder: jsoniter.Marshal,
-		JSONDecoder: jsoniter.Unmarshal,
+		JSONEncoder:  jsoniter.Marshal,
+		JSONDecoder:  jsoniter.Unmarshal,
+		ErrorHandler: middleware.ErrorHandler,
 	})
 	app.Use(cors.New())
 	app.Use(recover.New())
