@@ -1,0 +1,78 @@
+{
+    "title": "Custom Software Engineer Salary Survey",
+    "description": "This is a custom survey for collecting salary data from software engineers.",
+    "minCompletionTimeMin": 5,
+    "questions": [{
+            "id": "employment_type",
+            "text": "What is your employment type?",
+            "type": "select",
+            "required": true,
+            "order": 1,
+            "options": [
+                { "id": "full_time", "value": "Full-time employee" },
+                { "id": "part_time", "value": "Part-time employee" },
+                { "id": "freelancer", "value": "Freelancer/Contractor" },
+                { "id": "other", "value": "Other" }
+            ]
+        },
+        {
+            "id": "salary",
+            "text": "What is your annual salary in your local currency?",
+            "type": "number",
+            "required": true,
+            "order": 2,
+            "placeholder": "e.g., 100000",
+            "conditional": {
+                "questionId": "employment_type",
+                "value": "full_time,part_time"
+            }
+        },
+        {
+            "id": "currency",
+            "text": "What currency are you paid in?",
+            "type": "select",
+            "required": true,
+            "order": 3,
+            "options": [
+                { "id": "usd", "value": "USD" },
+                { "id": "eur", "value": "EUR" },
+                { "id": "gbp", "value": "GBP" },
+                { "id": "try", "value": "TRY" }
+            ]
+        },
+        {
+            "id": "experience",
+            "text": "How many years of experience do you have?",
+            "type": "number",
+            "required": true,
+            "order": 4,
+            "placeholder": "e.g., 5"
+        },
+        {
+            "id": "tech_stack",
+            "text": "What are your primary technologies/programming languages?",
+            "type": "multi-select",
+            "required": true,
+            "order": 5,
+            "placeholder": "Select all that apply",
+            "options": [
+                { "id": "javascript", "value": "JavaScript" },
+                { "id": "typescript", "value": "TypeScript" },
+                { "id": "python", "value": "Python" },
+                { "id": "java", "value": "Java" },
+                { "id": "csharp", "value": "C#" },
+                { "id": "go", "value": "Go" },
+                { "id": "rust", "value": "Rust" },
+                { "id": "other", "value": "Other" }
+            ]
+        },
+        {
+            "id": "location",
+            "text": "Where are you located?",
+            "type": "text",
+            "required": true,
+            "order": 6,
+            "placeholder": "e.g., Istanbul, Turkey"
+        }
+    ]
+}

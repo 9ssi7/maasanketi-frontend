@@ -1,0 +1,490 @@
+basePath: /api/v1
+definitions:
+  entity.Conditional:
+    properties:
+      questionId:
+        type: string
+      value:
+        type: string
+    type: object
+  entity.Option:
+    properties:
+      id:
+        type: string
+      value:
+        type: string
+    type: object
+  entity.Question:
+    properties:
+      conditional:
+        $ref: '#/definitions/entity.Conditional'
+      id:
+        type: string
+      options:
+        items:
+          $ref: '#/definitions/entity.Option'
+        type: array
+      order:
+        type: integer
+      placeholder:
+        type: string
+      required:
+        type: boolean
+      text:
+        type: string
+      type:
+        $ref: '#/definitions/entity.QuestionType'
+    type: object
+  entity.QuestionType:
+    enum:
+    - text
+    - number
+    - select
+    - multi-select
+    - boolean
+    type: string
+    x-enum-varnames:
+    - QuestionTypeText
+    - QuestionTypeNumber
+    - QuestionTypeSelect
+    - QuestionTypeMultiSelect
+    - QuestionTypeBoolean
+  entity.Survey:
+    properties:
+      createdAt:
+        type: string
+      createdBy:
+        description: Optional creator name
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      minCompletionTimeMin:
+        description: Minimum completion time in minutes
+        type: integer
+      questions:
+        items:
+          $ref: '#/definitions/entity.Question'
+        type: array
+      slug:
+        type: string
+      tags:
+        description: Optional tags for categorization
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  entity.SurveyListItem:
+    properties:
+      createdAt:
+        type: string
+      createdBy:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      minCompletionTimeMin:
+        type: integer
+      participants:
+        description: Number of completed responses
+        type: integer
+      slug:
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  entity.SurveyResponse:
+    properties:
+      answers:
+        additionalProperties: true
+        description: Map of question ID to answer
+        type: object
+      completedAt:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: string
+      ipAddress:
+        type: string
+      isAnonymous:
+        type: boolean
+      isCompleted:
+        type: boolean
+      startedAt:
+        type: string
+      surveySlug:
+        type: string
+      updatedAt:
+        type: string
+      userAgent:
+        type: string
+      userId:
+        description: Optional, for authenticated users
+        type: string
+    type: object
+  handler.SurveySwaggerListResponse:
+    properties:
+      limit:
+        type: integer
+      list:
+        items:
+          $ref: '#/definitions/entity.SurveyListItem'
+        type: array
+      page:
+        type: integer
+    type: object
+  handler.UserProfile:
+    properties:
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      picture:
+        type: string
+    type: object
+host: localhost:4004
+info:
+  contact:
+    email: support@maasanketi.co
+    name: API Support
+    url: http://www.maasanketi.co/support
+  description: API for the Software Engineer Salary Survey platform
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Software Engineer Salary Survey API
+  version: "1.0"
+paths:
+  /api/v1/user/profile:
+    get:
+      consumes:
+      - application/json
+      description: Get the profile of the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.UserProfile'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get user profile
+      tags:
+      - user
+  /healthcheck:
+    get:
+      consumes:
+      - '*/*'
+      description: get the status of server.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Show the status of server.
+      tags:
+      - HealthCheck
+  /surveys:
+    get:
+      consumes:
+      - application/json
+      description: List all available surveys
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/entity.Survey'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: List all surveys
+      tags:
+      - surveys
+    post:
+      consumes:
+      - application/json
+      description: Create a new survey with the provided data
+      parameters:
+      - description: Survey data
+        in: body
+        name: survey
+        required: true
+        schema:
+          $ref: '#/definitions/entity.Survey'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entity.Survey'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Create a new survey
+      tags:
+      - surveys
+  /surveys/{slug}:
+    get:
+      consumes:
+      - application/json
+      description: Get a survey by its Slug
+      parameters:
+      - description: Survey Slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.Survey'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get a survey by Slug
+      tags:
+      - surveys
+  /surveys/{slug}/responses:
+    get:
+      consumes:
+      - application/json
+      description: List all responses for a specific survey
+      parameters:
+      - description: Survey Slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/entity.SurveyResponse'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: List all responses for a survey
+      tags:
+      - survey-responses
+  /surveys/{slug}/responses/{responseId}:
+    put:
+      consumes:
+      - application/json
+      description: Update a survey response with the provided data
+      parameters:
+      - description: Survey Slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      - description: Response ID
+        in: path
+        name: responseId
+        required: true
+        type: string
+      - description: Response data
+        in: body
+        name: response
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.SurveyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Update a survey response
+      tags:
+      - survey-responses
+  /surveys/{slug}/responses/{responseId}/complete:
+    post:
+      consumes:
+      - application/json
+      description: Mark a survey response as completed
+      parameters:
+      - description: Survey Slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      - description: Response ID
+        in: path
+        name: responseId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.SurveyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Complete a survey response
+      tags:
+      - survey-responses
+  /surveys/{slug}/responses/start:
+    post:
+      consumes:
+      - application/json
+      description: Start a new response for a survey
+      parameters:
+      - description: Survey Slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entity.SurveyResponse'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Start a new survey response
+      tags:
+      - survey-responses
+  /surveys/{slug}/stats:
+    get:
+      consumes:
+      - application/json
+      description: Get aggregated statistics for a specific survey
+      parameters:
+      - description: Survey Slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get statistics for a survey
+      tags:
+      - survey-responses
+schemes:
+- http
+- https
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and the ID token
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

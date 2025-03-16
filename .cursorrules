@@ -1,0 +1,92 @@
+# Cursor Rules for Software Engineer Salary Survey Monorepo
+
+This document outlines the development guidelines and structure for the Software Engineer Salary Survey monorepo.
+
+## Repository Structure
+
+```txt
+maasanketi/
+├── modules/
+│   ├── web/         # Frontend React application
+│   └── backend/     # Backend Go application
+└── README.md        # Main README file
+```
+
+## Frontend (modules/web)
+
+- React application with TypeScript
+- Vite as build tool
+- Follow existing component structure and naming conventions
+- Use tailwind for styling
+
+## Backend (modules/backend)
+
+### Backend Structure
+
+```txt
+backend/
+├── cache/            # Cache implementations (Redis, etc.)
+├── cmd/              # Application entry points
+│   ├── api/          # API server
+│   └── worker/       # Background workers
+├── docs/             # Documentation
+├── handler/          # HTTP handlers
+├── middleware/       # HTTP middleware
+├── pkg/              # Shared packages
+│   └── logger/       # Logging utilities
+├── repository/       # Data access layer
+├── resources/        # Static resources
+├── swagger/          # API documentation
+├── go.mod            # Go module definition
+└── README.md         # Backend README
+```
+
+### Backend Development Guidelines
+
+1. **Entry Points**: All application entry points should be in the `cmd` directory.
+2. **API Handlers**: HTTP handlers should be in the `handler` directory.
+3. **Repository Pattern**: Use the repository pattern for data access.
+4. **Middleware**: Common middleware should be in the `middleware` directory.
+5. **Documentation**: API documentation should be generated using Swagger.
+6. **Error Handling**: Use consistent error handling throughout the application.
+7. **Logging**: Use structured logging via the logger package.
+8. **Configuration**: Use environment variables for configuration.
+9. **Testing**: Write unit tests for all packages.
+
+## General Guidelines
+
+1. **Commit Messages**: Use conventional commit messages (feat, fix, docs, etc.).
+2. **Code Reviews**: All code should be reviewed before merging.
+3. **Documentation**: Keep documentation up-to-date.
+4. **Testing**: Write tests for all new features.
+5. **Linting**: Use linters to maintain code quality.
+6. **Dependencies**: Keep dependencies up-to-date.
+7. **Security**: Follow security best practices.
+8. **Performance**: Consider performance implications of changes.
+
+## Development Workflow
+
+1. Create a new branch for each feature or bug fix.
+2. Write tests for the feature or bug fix.
+3. Implement the feature or bug fix.
+4. Run tests and linters.
+5. Submit a pull request.
+6. Address review comments.
+7. Merge the pull request.
+
+## Pre-commit Hooks
+
+Consider setting up pre-commit hooks for:
+
+- Linting
+- Formatting
+- Test running
+- Commit message validation
+
+## CI/CD
+
+The repository should have CI/CD pipelines for:
+
+- Building and testing the application
+- Deploying to staging and production environments
+- Running linters and other quality checks

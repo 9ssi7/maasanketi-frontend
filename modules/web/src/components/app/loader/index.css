@@ -1,0 +1,30 @@
+.loader {
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(farthest-side, #3397e6 94%, #0000), radial-gradient(farthest-side, #ffa500 94%, #0000), radial-gradient(farthest-side, #10b981 94%, #0000), radial-gradient(farthest-side, #8b5cf6 94%, #0000), #ffa500;
+    background-size: 105% 105%;
+    background-repeat: no-repeat;
+    animation: l5 2s infinite;
+}
+
+@keyframes l5 {
+    0% {
+        background-position: 50% -50px, -40px 50%, 50% calc(100% + 50px), calc(100% + 50px) 50%;
+    }
+    20%,
+    25% {
+        background-position: 50% -50px, -50px 50%, 50% calc(100% + 50px), 50% 50%;
+    }
+    45%,
+    50% {
+        background-position: 50% -50px, -50px 50%, 50% 50%, 50% 50%;
+    }
+    75%,
+    75% {
+        background-position: 50% -50px, 50% 50%, 50% 50%, 50% 50%;
+    }
+    95%,
+    100% {
+        background-position: 50% 50%, 50% 50%, 50% 50%, 50% 50%;
+    }
+}

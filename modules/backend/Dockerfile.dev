@@ -1,0 +1,17 @@
+FROM golang:1.24-alpine as builder
+
+WORKDIR /app
+
+COPY go.mod go.sum ./
+
+COPY . .
+
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/go/pkg/sumdb
+
+RUN go mod download
+
+RUN go install github.com/air-verse/air@latest
+
+CMD ["air", "-c", ".air.toml"]

@@ -1,0 +1,55 @@
+services:
+
+  api:
+    build: 
+      context: ./modules/backend
+      dockerfile: Dockerfile.dev
+    environment:
+      DB_CONN_STR: postgres://postgres:s1cr1t@postgres:5432/postgres
+    volumes:
+      - ./modules/backend:/app
+    ports:
+      - 4004:4004
+    depends_on:
+      - postgres
+    networks:
+      - maasanketi-network
+
+  postgres:
+    image: postgres:17.4
+    environment:
+      POSTGRES_PASSWORD: s1cr1t
+    healthcheck:
+      test: [ "CMD", "pg_isready" ,"-U", "postgres", "-h", "127.0.0.1", "-p", "5432" ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    networks:
+      - maasanketi-network
+
+  web:
+    build:
+      context: ./modules/web
+      dockerfile: Dockerfile.dev
+    restart: always
+    volumes:
+      - ./modules/web/:/app
+      - /app/node_modules
+    ports:
+      - 5173:5173
+    depends_on:
+      - api
+    networks:
+      - maasanketi-network
+
+volumes:
+  postgres_data:
+    name: maasanketi-postgres-data 
+
+networks:
+  maasanketi-network:
+    driver: bridge
