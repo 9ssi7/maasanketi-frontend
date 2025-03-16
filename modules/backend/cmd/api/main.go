@@ -14,6 +14,7 @@ import (
 	"github.com/gofiber/swagger"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/mstrYoda/maasanketi.co/handler"
+	"github.com/mstrYoda/maasanketi.co/middleware"
 	log "github.com/mstrYoda/maasanketi.co/pkg/logger"
 	"github.com/mstrYoda/maasanketi.co/repository"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -42,6 +43,11 @@ func (a *Application) Register() {
 	surveys := v1.Group("/surveys")
 	surveys.Get("/", handler.GetSurveys)
 	surveys.Get("/:id", handler.GetSurvey)
+
+	// Protected routes (require authentication)
+	user := v1.Group("/user")
+	user.Use(middleware.GoogleAuth()) // Apply Google authentication middleware
+	user.Get("/profile", handler.GetUserProfile)
 }
 
 // @title Software Engineer Salary Survey API
@@ -56,6 +62,10 @@ func (a *Application) Register() {
 // @host localhost:4004
 // @BasePath /api/v1
 // @schemes http https
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and the ID token
 func main() {
 	repo, err := repository.New()
 	if err != nil {

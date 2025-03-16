@@ -11,6 +11,7 @@ The backend is currently under initial development. This README will be updated 
 - RESTful API for survey data
 - Swagger documentation
 - Health monitoring
+- Google authentication
 
 ## API Documentation
 
@@ -26,11 +27,25 @@ To generate or update the Swagger documentation, run:
 make swagger
 ```
 
+## Authentication
+
+The API uses Google authentication for protected routes. To authenticate:
+
+1. Obtain a Google ID token from the client-side Google Sign-In
+2. Include the token in the Authorization header:
+
+   ```txt
+   Authorization: Bearer <google-id-token>
+   ```
+
+For more details, see the [middleware documentation](middleware/README.md).
+
 ## Development
 
 ### Prerequisites
 
 - Go 1.24 or higher
+- Google OAuth2 client ID (set as `GOOGLE_CLIENT_ID` environment variable)
 
 ### Running the Application
 
