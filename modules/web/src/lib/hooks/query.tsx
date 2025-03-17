@@ -21,11 +21,10 @@ type Result<T, P> = {
   setData: (data: T) => void;
 };
 
-export function useQuery<T = any, P = any>({
-  fetcher,
-  params,
-  dataMerger,
-}: Params<T, P>): Result<T, P> {
+export function useQuery<T = any, P = any>(
+  { fetcher, params, dataMerger }: Params<T, P>,
+  deps?: any[]
+): Result<T, P> {
   const [data, setData] = useState<T | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
@@ -59,7 +58,7 @@ export function useQuery<T = any, P = any>({
     };
 
     fetchData();
-  }, []);
+  }, deps || []);
 
   const refetch = async (p?: P) => {
     setIsError(false);

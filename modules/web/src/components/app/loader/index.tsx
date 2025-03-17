@@ -8,11 +8,11 @@ type Props = {
 };
 
 const sizes = {
-  xs: "size-4",
-  sm: "size-5",
-  md: "size-6",
-  lg: "size-7",
-  xl: "size-8",
+  xs: "tw:size-4",
+  sm: "tw:size-5",
+  md: "tw:size-6",
+  lg: "tw:size-7",
+  xl: "tw:size-8",
 };
 
 export default function Loader({ size = "md" }: Props) {

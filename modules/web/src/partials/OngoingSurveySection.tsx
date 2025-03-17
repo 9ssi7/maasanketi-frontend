@@ -13,6 +13,7 @@ type Props = {
   sort?: SurveySort;
   search?: string;
   hideExpired?: boolean;
+  onClear?: () => void;
 };
 
 export default function OngoingSurveySection({
@@ -20,13 +21,17 @@ export default function OngoingSurveySection({
   sort,
   hideExpired,
   search,
+  onClear,
 }: Props) {
   const [page, setPage] = useState(1);
-  const { data, isLoading, isError } = useQuery({
-    fetcher: () =>
-      surveyList(jsonToQuery({ tag, sort, hideExpired, search, page })),
-    dataMerger: listMerger,
-  });
+  const { data, isLoading, isError } = useQuery(
+    {
+      fetcher: () =>
+        surveyList(jsonToQuery({ tag, sort, hideExpired, search, page })),
+      dataMerger: listMerger,
+    },
+    [tag, sort, hideExpired, search, page]
+  );
 
   if (isLoading) return <State.Loading />;
 
@@ -38,7 +43,10 @@ export default function OngoingSurveySection({
         {data && data?.list?.length > 0 ? (
           data?.list.map((survey) => <SurveyCard key={survey.id} {...survey} />)
         ) : (
-          <State.Empty />
+          <State.Empty
+            filtered={!!search || !!tag || !!sort || !!hideExpired}
+            onClear={onClear}
+          />
         )}
       </div>
       <Pagi

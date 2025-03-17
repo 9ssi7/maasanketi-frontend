@@ -1,9 +1,8 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* 
-  This file contains only the Tailwind directives.
-  Your existing CSS in Results.css and other files will remain untouched.
-  You can use Tailwind utility classes alongside your custom CSS.
-*/
+@import "tailwindcss" prefix(tw);
+@theme {
+    --color-primary: #4361ee;
+    --color-primary-light: #4895ef;
+    --color-primary-dark: #3a0ca3;
+    --color-secondary: #4cc9f0;
+    --color-accent: #f72585;
+}

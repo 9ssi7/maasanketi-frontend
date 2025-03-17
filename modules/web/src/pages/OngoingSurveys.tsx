@@ -1,8 +1,18 @@
 import { Link } from "react-router-dom";
 import "../styles/OngoingSurveys.css";
 import OngoingSurveySection from "../partials/OngoingSurveySection";
+import { useRef, useState } from "react";
+import {
+  SurveyCategoryTexts,
+  SurveySort,
+  SurveySortTexts,
+} from "../types/survey.types";
 
 const OngoingSurveys = () => {
+  const [sort, setSort] = useState<SurveySort>(SurveySort.CreatedAtDesc);
+  const [tag, setTag] = useState<string>("");
+  const [search, setSearch] = useState<string>("");
+  const searchRef = useRef<HTMLInputElement>(null);
   return (
     <div className="ongoing-surveys-container">
       <div className="ongoing-surveys-header">
@@ -17,29 +27,50 @@ const OngoingSurveys = () => {
 
       <div className="survey-filters">
         <div className="search-bar">
-          <input type="text" placeholder="Search surveys..." />
-          <button>Search</button>
+          <input
+            id="search"
+            type="text"
+            placeholder="Anket Ara..."
+            ref={searchRef}
+          />
+          <button onClick={() => setSearch(searchRef.current?.value || "")}>
+            Ara
+          </button>
         </div>
 
         <div className="filter-options">
-          <select defaultValue="">
-            <option value="">All Roles</option>
-            <option value="frontend">Frontend</option>
-            <option value="backend">Backend</option>
-            <option value="fullstack">Fullstack</option>
-            <option value="devops">DevOps</option>
+          <select defaultValue={tag} onChange={(e) => setTag(e.target.value)}>
+            <option value="">Tüm Departmanlar</option>
+            {Object.keys(SurveyCategoryTexts).map((category) => (
+              <option key={category} value={category}>
+                {SurveyCategoryTexts[category]}
+              </option>
+            ))}
           </select>
 
-          <select defaultValue="newest">
-            <option value="newest">Newest First</option>
-            <option value="closing">Closing Soon</option>
-            <option value="popular">Most Participants</option>
+          <select
+            defaultValue={sort}
+            onChange={(e) => setSort(e.target.value as SurveySort)}
+          >
+            {Object.values(SurveySort).map((sort) => (
+              <option key={sort} value={sort}>
+                {SurveySortTexts[sort]}
+              </option>
+            ))}
           </select>
         </div>
       </div>
 
-      <OngoingSurveySection />
-
+      <OngoingSurveySection
+        sort={sort}
+        tag={tag}
+        search={search}
+        onClear={() => {
+          setSearch("");
+          setTag("");
+          setSort(SurveySort.CreatedAtDesc);
+        }}
+      />
       <div className="ongoing-surveys-note">
         <p>
           All survey responses are anonymous and will be used only for

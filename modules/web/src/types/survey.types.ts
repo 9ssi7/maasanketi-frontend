@@ -134,3 +134,25 @@ export function isSurveyListItem(survey: unknown): survey is SurveyListItem {
 export function isSurveyList(surveys: unknown): surveys is SurveyListItem[] {
   return Array.isArray(surveys) && surveys.every(isSurveyListItem)
 }
+
+export const SurveySortTexts : Record<SurveySort, string> = {
+  [SurveySort.MostParticipants]: "En Fazla Katılımcı",
+  [SurveySort.CreatedAtAsc]: "En Eski Oluşturulan",
+  [SurveySort.CreatedAtDesc]: "En Yeni Oluşturulan",
+  [SurveySort.FinishesAtAsc]: "En Yakın Bitiş",
+  [SurveySort.FinishesAtDesc]: "En Uzak Bitiş",
+}
+
+export const SurveyCategoryTexts : Record<string, string> = {
+  "frontend": "Frontend",
+  "backend": "Backend",
+  "fullstack": "Fullstack",
+  "devops": "DevOps",
+  "qa": "QA",
+  "design": "Design",
+  "pm": "Product Management",
+  "hr": "Human Resources",
+  "marketing": "Marketing",
+  "sales": "Sales",
+  "other": "Diğer",
+}

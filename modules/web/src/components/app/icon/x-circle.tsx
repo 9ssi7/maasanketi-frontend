@@ -1,8 +1,6 @@
 import { PropsWithClassName } from "../../../types/base.types";
 
-export default function AppIconXCircle({
-  className = "tw-size-6",
-}: PropsWithClassName) {
+export default function AppIconXCircle({ className = "tw:size-6" }: PropsWithClassName) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
