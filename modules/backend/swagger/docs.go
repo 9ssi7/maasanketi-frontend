@@ -31,7 +31,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get the profile of the authenticated user",
+                "description": "View the profile of the authenticated user",
                 "consumes": [
                     "application/json"
                 ],
@@ -41,7 +41,7 @@ const docTemplate = `{
                 "tags": [
                     "user"
                 ],
-                "summary": "Get user profile",
+                "summary": "View user profile",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -86,7 +86,7 @@ const docTemplate = `{
         },
         "/surveys": {
             "get": {
-                "description": "List all available surveys",
+                "description": "List all available surveys with pagination, filtering, and sorting",
                 "consumes": [
                     "application/json"
                 ],
@@ -96,54 +96,50 @@ const docTemplate = `{
                 "tags": [
                     "surveys"
                 ],
-                "summary": "List all surveys",
+                "summary": "List all surveys with pagination and filtering",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by tag",
+                        "name": "tag",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort field (created_at_asc, created_at_desc, most_participants, finishes_at_asc, finishes_at_desc)",
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Hide expired surveys",
+                        "name": "hideExpired",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Text search query for title and description",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/entity.Survey"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            },
-            "post": {
-                "description": "Create a new survey with the provided data",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "surveys"
-                ],
-                "summary": "Create a new survey",
-                "parameters": [
-                    {
-                        "description": "Survey data",
-                        "name": "survey",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/entity.Survey"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/entity.Survey"
+                            "$ref": "#/definitions/SurveyListResponse"
                         }
                     },
                     "400": {
@@ -210,55 +206,6 @@ const docTemplate = `{
             }
         },
         "/surveys/{slug}/responses": {
-            "get": {
-                "description": "List all responses for a specific survey",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "survey-responses"
-                ],
-                "summary": "List all responses for a survey",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Survey Slug",
-                        "name": "slug",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/entity.SurveyResponse"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/surveys/{slug}/responses/start": {
             "post": {
                 "description": "Start a new response for a survey",
                 "consumes": [
@@ -278,76 +225,21 @@ const docTemplate = `{
                         "name": "slug",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "Is Anonymous",
+                        "name": "isAnonymous",
+                        "in": "body",
+                        "schema": {
+                            "type": "boolean"
+                        }
                     }
                 ],
                 "responses": {
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/entity.SurveyResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/surveys/{slug}/responses/{responseId}": {
-            "put": {
-                "description": "Update a survey response with the provided data",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "survey-responses"
-                ],
-                "summary": "Update a survey response",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Survey Slug",
-                        "name": "slug",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Response ID",
-                        "name": "responseId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Response data",
-                        "name": "response",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/entity.SurveyResponse"
+                            "$ref": "#/definitions/entity.ViewSurveyResponse"
                         }
                     },
                     "400": {
@@ -374,9 +266,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/surveys/{slug}/responses/{responseId}/complete": {
-            "post": {
-                "description": "Mark a survey response as completed",
+        "/surveys/{slug}/responses/{responseId}": {
+            "patch": {
+                "description": "Complete a survey response with the provided data",
                 "consumes": [
                     "application/json"
                 ],
@@ -401,13 +293,22 @@ const docTemplate = `{
                         "name": "responseId",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "Response data",
+                        "name": "response",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/SurveyResponseCompleteRequest"
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/entity.SurveyResponse"
+                            "$ref": "#/definitions/entity.ViewSurveyResponse"
                         }
                     },
                     "400": {
@@ -444,7 +345,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "survey-responses"
+                    "surveys"
                 ],
                 "summary": "Get statistics for a survey",
                 "parameters": [
@@ -483,6 +384,47 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "SurveyListResponse": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer"
+                },
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.ViewSurveyList"
+                    }
+                },
+                "page": {
+                    "type": "integer"
+                }
+            }
+        },
+        "SurveyResponseCompleteRequest": {
+            "type": "object",
+            "required": [
+                "answers",
+                "responseID",
+                "slug"
+            ],
+            "properties": {
+                "answers": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "responseID": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                }
+            }
+        },
+        "entity.Answers": {
+            "type": "object",
+            "additionalProperties": true
+        },
         "entity.Conditional": {
             "type": "object",
             "properties": {
@@ -567,6 +509,9 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
+                "finishesAt": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "string"
                 },
@@ -598,7 +543,7 @@ const docTemplate = `{
                 }
             }
         },
-        "entity.SurveyListItem": {
+        "entity.ViewSurveyList": {
             "type": "object",
             "properties": {
                 "createdAt": {
@@ -608,6 +553,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "description": {
+                    "type": "string"
+                },
+                "finishesAt": {
                     "type": "string"
                 },
                 "id": {
@@ -637,64 +585,20 @@ const docTemplate = `{
                 }
             }
         },
-        "entity.SurveyResponse": {
+        "entity.ViewSurveyResponse": {
             "type": "object",
             "properties": {
                 "answers": {
-                    "description": "Map of question ID to answer",
-                    "type": "object",
-                    "additionalProperties": true
-                },
-                "completedAt": {
-                    "type": "string"
-                },
-                "createdAt": {
-                    "type": "string"
+                    "$ref": "#/definitions/entity.Answers"
                 },
                 "id": {
                     "type": "string"
-                },
-                "ipAddress": {
-                    "type": "string"
-                },
-                "isAnonymous": {
-                    "type": "boolean"
-                },
-                "isCompleted": {
-                    "type": "boolean"
                 },
                 "startedAt": {
                     "type": "string"
                 },
                 "surveySlug": {
                     "type": "string"
-                },
-                "updatedAt": {
-                    "type": "string"
-                },
-                "userAgent": {
-                    "type": "string"
-                },
-                "userId": {
-                    "description": "Optional, for authenticated users",
-                    "type": "string"
-                }
-            }
-        },
-        "handler.SurveySwaggerListResponse": {
-            "type": "object",
-            "properties": {
-                "limit": {
-                    "type": "integer"
-                },
-                "list": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/entity.SurveyListItem"
-                    }
-                },
-                "page": {
-                    "type": "integer"
                 }
             }
         },
@@ -732,8 +636,8 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "localhost:4004",
 	BasePath:         "/api/v1",
 	Schemes:          []string{"http", "https"},
-	Title:            "Software Engineer Salary Survey API",
-	Description:      "API for the Software Engineer Salary Survey platform",
+	Title:            "Maasanketi API",
+	Description:      "API for the Maasanketi platform",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

@@ -145,7 +145,7 @@ func main() {
 	log.Logger().Info("Saving survey to database...")
 
 	// Save survey to database with timeout context
-	if err := repo.Survey.CreateSurvey(dbCtx, survey); err != nil {
+	if err := repo.Survey.Create(dbCtx, survey); err != nil {
 		if dbCtx.Err() == context.DeadlineExceeded {
 			log.Logger().Fatal("database operation timed out after 30 seconds")
 		}

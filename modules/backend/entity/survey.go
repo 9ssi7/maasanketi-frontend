@@ -1,7 +1,6 @@
 package entity
 
 import (
-	"errors"
 	"time"
 
 	"github.com/9ssi7/slug"
@@ -62,21 +61,23 @@ type Survey struct {
 	Tags                 []string   `json:"tags,omitempty"`       // Optional tags for categorization
 }
 
+type Answers map[string]interface{}
+
 // SurveyResponse represents a user's response to a survey
 type SurveyResponse struct {
-	ID          string                 `json:"id"`
-	SurveySlug  string                 `json:"surveySlug"`
-	UserID      string                 `json:"userId,omitempty"` // Optional, for authenticated users
-	Answers     map[string]interface{} `json:"answers"`          // Map of question ID to answer
-	StartedAt   time.Time              `json:"startedAt"`
-	CompletedAt *time.Time             `json:"completedAt,omitempty"`
-	IPAddress   string                 `json:"ipAddress"`
-	UserAgent   string                 `json:"userAgent"`
-	IsCompleted bool                   `json:"isCompleted"`
-	IsAnonymous bool                   `json:"isAnonymous"`
-	CreatedAt   time.Time              `json:"createdAt"`
-	UpdatedAt   time.Time              `json:"updatedAt"`
-}
+	ID          string     `json:"id"`
+	SurveySlug  string     `json:"surveySlug"`
+	UserID      string     `json:"userId,omitempty"` // Optional, for authenticated users
+	Answers     Answers    `json:"answers"`          // Map of question ID to answer
+	StartedAt   time.Time  `json:"startedAt"`
+	CompletedAt *time.Time `json:"completedAt,omitempty"`
+	IPAddress   string     `json:"ipAddress"`
+	UserAgent   string     `json:"userAgent"`
+	IsCompleted bool       `json:"isCompleted"`
+	IsAnonymous bool       `json:"isAnonymous"`
+	CreatedAt   time.Time  `json:"createdAt"`
+	UpdatedAt   time.Time  `json:"updatedAt"`
+} // @name SurveyResponse
 
 // GenerateSlug generates a slug from the survey title
 func (s *Survey) GenerateSlug() {
@@ -348,33 +349,15 @@ func DefaultSurvey() *Survey {
 	}
 }
 
-// ValidateCompletion checks if the survey response meets the minimum completion time requirement
-func (sr *SurveyResponse) ValidateCompletion(survey *Survey) error {
-	if sr.CompletedAt == nil {
-		return errors.New("survey is not completed")
-	}
-
-	minCompletionTime := time.Duration(survey.MinCompletionTimeMin) * time.Minute
-	actualCompletionTime := sr.CompletedAt.Sub(sr.StartedAt)
-
-	if actualCompletionTime < minCompletionTime {
-		return errors.New("survey completed too quickly, minimum completion time not met")
-	}
-
-	return nil
-}
-
 // Complete marks the survey response as completed
 func (sr *SurveyResponse) Complete(survey *Survey) error {
 	now := time.Now()
 	sr.CompletedAt = &now
 	sr.UpdatedAt = now
-
 	if err := sr.ValidateCompletion(survey); err != nil {
 		sr.CompletedAt = nil
 		return err
 	}
-
 	sr.IsCompleted = true
 	return nil
 }

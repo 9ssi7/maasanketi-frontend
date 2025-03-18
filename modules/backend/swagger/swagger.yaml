@@ -1,5 +1,33 @@
 basePath: /api/v1
 definitions:
+  SurveyListResponse:
+    properties:
+      limit:
+        type: integer
+      list:
+        items:
+          $ref: '#/definitions/entity.ViewSurveyList'
+        type: array
+      page:
+        type: integer
+    type: object
+  SurveyResponseCompleteRequest:
+    properties:
+      answers:
+        additionalProperties: true
+        type: object
+      responseID:
+        type: string
+      slug:
+        type: string
+    required:
+    - answers
+    - responseID
+    - slug
+    type: object
+  entity.Answers:
+    additionalProperties: true
+    type: object
   entity.Conditional:
     properties:
       questionId:
@@ -58,6 +86,8 @@ definitions:
         type: string
       description:
         type: string
+      finishesAt:
+        type: string
       id:
         type: string
       minCompletionTimeMin:
@@ -79,13 +109,15 @@ definitions:
       updatedAt:
         type: string
     type: object
-  entity.SurveyListItem:
+  entity.ViewSurveyList:
     properties:
       createdAt:
         type: string
       createdBy:
         type: string
       description:
+        type: string
+      finishesAt:
         type: string
       id:
         type: string
@@ -105,46 +137,16 @@ definitions:
       updatedAt:
         type: string
     type: object
-  entity.SurveyResponse:
+  entity.ViewSurveyResponse:
     properties:
       answers:
-        additionalProperties: true
-        description: Map of question ID to answer
-        type: object
-      completedAt:
-        type: string
-      createdAt:
-        type: string
+        $ref: '#/definitions/entity.Answers'
       id:
         type: string
-      ipAddress:
-        type: string
-      isAnonymous:
-        type: boolean
-      isCompleted:
-        type: boolean
       startedAt:
         type: string
       surveySlug:
         type: string
-      updatedAt:
-        type: string
-      userAgent:
-        type: string
-      userId:
-        description: Optional, for authenticated users
-        type: string
-    type: object
-  handler.SurveySwaggerListResponse:
-    properties:
-      limit:
-        type: integer
-      list:
-        items:
-          $ref: '#/definitions/entity.SurveyListItem'
-        type: array
-      page:
-        type: integer
     type: object
   handler.UserProfile:
     properties:
@@ -163,19 +165,19 @@ info:
     email: support@maasanketi.co
     name: API Support
     url: http://www.maasanketi.co/support
-  description: API for the Software Engineer Salary Survey platform
+  description: API for the Maasanketi platform
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   termsOfService: http://swagger.io/terms/
-  title: Software Engineer Salary Survey API
+  title: Maasanketi API
   version: "1.0"
 paths:
   /api/v1/user/profile:
     get:
       consumes:
       - application/json
-      description: Get the profile of the authenticated user
+      description: View the profile of the authenticated user
       produces:
       - application/json
       responses:
@@ -191,7 +193,7 @@ paths:
             type: object
       security:
       - BearerAuth: []
-      summary: Get user profile
+      summary: View user profile
       tags:
       - user
   /healthcheck:
@@ -213,42 +215,40 @@ paths:
     get:
       consumes:
       - application/json
-      description: List all available surveys
+      description: List all available surveys with pagination, filtering, and sorting
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: limit
+        type: integer
+      - description: Filter by tag
+        in: query
+        name: tag
+        type: string
+      - description: Sort field (created_at_asc, created_at_desc, most_participants,
+          finishes_at_asc, finishes_at_desc)
+        in: query
+        name: sort
+        type: string
+      - description: Hide expired surveys
+        in: query
+        name: hideExpired
+        type: boolean
+      - description: Text search query for title and description
+        in: query
+        name: search
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/entity.Survey'
-            type: array
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties: true
-            type: object
-      summary: List all surveys
-      tags:
-      - surveys
-    post:
-      consumes:
-      - application/json
-      description: Create a new survey with the provided data
-      parameters:
-      - description: Survey data
-        in: body
-        name: survey
-        required: true
-        schema:
-          $ref: '#/definitions/entity.Survey'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/entity.Survey'
+            $ref: '#/definitions/SurveyListResponse'
         "400":
           description: Bad Request
           schema:
@@ -259,7 +259,7 @@ paths:
           schema:
             additionalProperties: true
             type: object
-      summary: Create a new survey
+      summary: List all surveys with pagination and filtering
       tags:
       - surveys
   /surveys/{slug}:
@@ -294,25 +294,33 @@ paths:
       tags:
       - surveys
   /surveys/{slug}/responses:
-    get:
+    post:
       consumes:
       - application/json
-      description: List all responses for a specific survey
+      description: Start a new response for a survey
       parameters:
       - description: Survey Slug
         in: path
         name: slug
         required: true
         type: string
+      - description: Is Anonymous
+        in: body
+        name: isAnonymous
+        schema:
+          type: boolean
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
-            items:
-              $ref: '#/definitions/entity.SurveyResponse'
-            type: array
+            $ref: '#/definitions/entity.ViewSurveyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
         "404":
           description: Not Found
           schema:
@@ -323,14 +331,14 @@ paths:
           schema:
             additionalProperties: true
             type: object
-      summary: List all responses for a survey
+      summary: Start a new survey response
       tags:
       - survey-responses
   /surveys/{slug}/responses/{responseId}:
-    put:
+    patch:
       consumes:
       - application/json
-      description: Update a survey response with the provided data
+      description: Complete a survey response with the provided data
       parameters:
       - description: Survey Slug
         in: path
@@ -347,56 +355,14 @@ paths:
         name: response
         required: true
         schema:
-          additionalProperties: true
-          type: object
+          $ref: '#/definitions/SurveyResponseCompleteRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/entity.SurveyResponse'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties: true
-            type: object
-        "404":
-          description: Not Found
-          schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Update a survey response
-      tags:
-      - survey-responses
-  /surveys/{slug}/responses/{responseId}/complete:
-    post:
-      consumes:
-      - application/json
-      description: Mark a survey response as completed
-      parameters:
-      - description: Survey Slug
-        in: path
-        name: slug
-        required: true
-        type: string
-      - description: Response ID
-        in: path
-        name: responseId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/entity.SurveyResponse'
+            $ref: '#/definitions/entity.ViewSurveyResponse'
         "400":
           description: Bad Request
           schema:
@@ -413,37 +379,6 @@ paths:
             additionalProperties: true
             type: object
       summary: Complete a survey response
-      tags:
-      - survey-responses
-  /surveys/{slug}/responses/start:
-    post:
-      consumes:
-      - application/json
-      description: Start a new response for a survey
-      parameters:
-      - description: Survey Slug
-        in: path
-        name: slug
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/entity.SurveyResponse'
-        "404":
-          description: Not Found
-          schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Start a new survey response
       tags:
       - survey-responses
   /surveys/{slug}/stats:
@@ -477,7 +412,7 @@ paths:
             type: object
       summary: Get statistics for a survey
       tags:
-      - survey-responses
+      - surveys
 schemes:
 - http
 - https

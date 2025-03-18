@@ -15,5 +15,10 @@ var (
 	IDRequired   = New(1102, http.StatusBadRequest, "id_required")
 	IDInvalid    = New(1103, http.StatusBadRequest, "id_invalid")
 
-	SurveyNotFound = New(1200, http.StatusNotFound, "survey_not_found")
+	SurveyNotFound                 = New(1200, http.StatusNotFound, "survey_not_found")
+	SurveyExpired                  = New(1201, http.StatusBadRequest, "survey_expired")
+	SurveyResponseNotFound         = New(1202, http.StatusNotFound, "survey_response_not_found")
+	SurveyResponseValidationFailed = New(1203, http.StatusBadRequest, "survey_response_validation_failed")
+	SurveyResponseNotCompleted     = New(1204, http.StatusBadRequest, "survey_response_not_completed")
+	SurveyCompletionTimeTooShort   = New(1205, http.StatusBadRequest, "survey_completion_time_too_short")
 )

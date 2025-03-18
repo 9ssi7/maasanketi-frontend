@@ -12,9 +12,8 @@ type UserProfile struct {
 	Picture string `json:"picture"`
 }
 
-// GetUserProfile godoc
-// @Summary Get user profile
-// @Description Get the profile of the authenticated user
+// @Summary View user profile
+// @Description View the profile of the authenticated user
 // @Tags user
 // @Accept json
 // @Produce json
@@ -22,7 +21,7 @@ type UserProfile struct {
 // @Success 200 {object} UserProfile
 // @Failure 401 {object} map[string]string
 // @Router /api/v1/user/profile [get]
-func GetUserProfile(c *fiber.Ctx) error {
+func ViewProfile(c *fiber.Ctx) error {
 	// Get user information from context (set by the GoogleAuth middleware)
 	userID := c.Locals("user_id")
 	email := c.Locals("email")

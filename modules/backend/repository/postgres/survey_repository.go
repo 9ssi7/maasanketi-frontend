@@ -36,8 +36,8 @@ func parseUUID(id string) (uuid.UUID, error) {
 	return uuid.Parse(id)
 }
 
-// CreateSurvey creates a new survey
-func (r *SurveyRepository) CreateSurvey(ctx context.Context, survey *entity.Survey) error {
+// CreateSuCreatervey creates a new survey
+func (r *SurveyRepository) Create(ctx context.Context, survey *entity.Survey) error {
 	questionsJSON, err := json.Marshal(survey.Questions)
 	if err != nil {
 		return rescode.Failed(err)
@@ -76,8 +76,8 @@ func (r *SurveyRepository) CreateSurvey(ctx context.Context, survey *entity.Surv
 	return nil
 }
 
-// GetSurveyByID gets a survey by ID
-func (r *SurveyRepository) GetSurveyByID(ctx context.Context, id string) (*entity.Survey, error) {
+// FindByID gets a survey by ID
+func (r *SurveyRepository) FindByID(ctx context.Context, id string) (*entity.Survey, error) {
 	// Parse UUID from string
 	surveyUUID, err := parseUUID(id)
 	if err != nil {
@@ -134,8 +134,8 @@ func (r *SurveyRepository) GetSurveyByID(ctx context.Context, id string) (*entit
 	return &survey, nil
 }
 
-// UpdateSurvey updates a survey
-func (r *SurveyRepository) UpdateSurvey(ctx context.Context, survey *entity.Survey) error {
+// Update updates a survey
+func (r *SurveyRepository) Update(ctx context.Context, survey *entity.Survey) error {
 	questionsJSON, err := json.Marshal(survey.Questions)
 	if err != nil {
 		return rescode.Failed(err)
@@ -180,8 +180,8 @@ func (r *SurveyRepository) UpdateSurvey(ctx context.Context, survey *entity.Surv
 	return nil
 }
 
-// DeleteSurvey deletes a survey
-func (r *SurveyRepository) DeleteSurvey(ctx context.Context, id string) error {
+// Delete deletes a survey
+func (r *SurveyRepository) Delete(ctx context.Context, id string) error {
 	// Parse UUID from string
 	surveyUUID, err := parseUUID(id)
 	if err != nil {
@@ -207,72 +207,8 @@ func (r *SurveyRepository) DeleteSurvey(ctx context.Context, id string) error {
 	return nil
 }
 
-// ListSurveys lists all surveys
-func (r *SurveyRepository) ListSurveys(ctx context.Context) ([]*entity.Survey, error) {
-	query := r.sb.Select("id", "slug", "title", "description", "questions", "min_completion_time_min", "created_at", "updated_at", "created_by", "tags", "finishes_at").
-		From("surveys").
-		OrderBy("created_at DESC")
-
-	sql, args, err := query.ToSql()
-	if err != nil {
-		return nil, rescode.Failed(err)
-	}
-
-	rows, err := r.db.Query(ctx, sql, args...)
-	if err != nil {
-		return nil, rescode.Failed(err)
-	}
-	defer rows.Close()
-
-	var surveys []*entity.Survey
-
-	for rows.Next() {
-		var survey entity.Survey
-		var questionsJSON []byte
-		var tagsJSON []byte
-		var dbUUID uuid.UUID
-
-		err := rows.Scan(
-			&dbUUID,
-			&survey.Slug,
-			&survey.Title,
-			&survey.Description,
-			&questionsJSON,
-			&survey.MinCompletionTimeMin,
-			&survey.CreatedAt,
-			&survey.UpdatedAt,
-			&survey.CreatedBy,
-			&tagsJSON,
-			&survey.FinishesAt,
-		)
-		if err != nil {
-			return nil, rescode.Failed(err)
-		}
-
-		survey.ID = dbUUID.String()
-
-		err = json.Unmarshal(questionsJSON, &survey.Questions)
-		if err != nil {
-			return nil, rescode.Failed(err)
-		}
-
-		err = json.Unmarshal(tagsJSON, &survey.Tags)
-		if err != nil {
-			return nil, rescode.Failed(err)
-		}
-
-		surveys = append(surveys, &survey)
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, rescode.Failed(err)
-	}
-
-	return surveys, nil
-}
-
-// CreateSurveyResponse creates a new survey response
-func (r *SurveyRepository) CreateSurveyResponse(ctx context.Context, response *entity.SurveyResponse) error {
+// ResponseCreate creates a new survey response
+func (r *SurveyRepository) ResponseCreate(ctx context.Context, response *entity.SurveyResponse) error {
 	answersJSON, err := json.Marshal(response.Answers)
 	if err != nil {
 		return rescode.Failed(err)
@@ -293,7 +229,7 @@ func (r *SurveyRepository) CreateSurveyResponse(ctx context.Context, response *e
 		userUUID = &parsedUserUUID
 	}
 
-	survey, err := r.GetSurveyBySlug(ctx, response.SurveySlug)
+	survey, err := r.FindBySlug(ctx, response.SurveySlug)
 	if err != nil {
 		return rescode.SurveyNotFound(err)
 	}
@@ -346,8 +282,8 @@ func (r *SurveyRepository) CreateSurveyResponse(ctx context.Context, response *e
 	return nil
 }
 
-// GetSurveyResponseByID gets a survey response by ID
-func (r *SurveyRepository) GetSurveyResponseByID(ctx context.Context, id string) (*entity.SurveyResponse, error) {
+// ResponseFindByID gets a survey response by ID
+func (r *SurveyRepository) ResponseFindByID(ctx context.Context, id string) (*entity.SurveyResponse, error) {
 	// Parse UUID from string
 	responseUUID, err := parseUUID(id)
 	if err != nil {
@@ -407,8 +343,8 @@ func (r *SurveyRepository) GetSurveyResponseByID(ctx context.Context, id string)
 	return &response, nil
 }
 
-// UpdateSurveyResponse updates a survey response
-func (r *SurveyRepository) UpdateSurveyResponse(ctx context.Context, response *entity.SurveyResponse) error {
+// ResponseUpdate updates a survey response
+func (r *SurveyRepository) ResponseUpdate(ctx context.Context, response *entity.SurveyResponse) error {
 	answersJSON, err := json.Marshal(response.Answers)
 	if err != nil {
 		return rescode.Failed(err)
@@ -444,8 +380,8 @@ func (r *SurveyRepository) UpdateSurveyResponse(ctx context.Context, response *e
 	return nil
 }
 
-// ListSurveyResponses lists all responses for a survey
-func (r *SurveyRepository) ListSurveyResponses(ctx context.Context, surveySlug string) ([]*entity.SurveyResponse, error) {
+// ResponseList lists all responses for a survey
+func (r *SurveyRepository) ResponseList(ctx context.Context, surveySlug string) ([]*entity.SurveyResponse, error) {
 	query := r.sb.Select("id", "survey_slug", "user_id", "answers", "started_at", "completed_at", "ip_address", "user_agent", "is_completed", "is_anonymous", "created_at", "updated_at").
 		From("survey_responses").
 		Where(squirrel.Eq{"survey_slug": surveySlug}).
@@ -512,10 +448,10 @@ func (r *SurveyRepository) ListSurveyResponses(ctx context.Context, surveySlug s
 	return responses, nil
 }
 
-// GetSurveyResponseStats gets statistics for a survey
-func (r *SurveyRepository) GetSurveyResponseStats(ctx context.Context, surveyID string) (map[string]interface{}, error) {
+// ResponseStats gets statistics for a survey
+func (r *SurveyRepository) ResponseStats(ctx context.Context, surveyID string) (map[string]interface{}, error) {
 	// Get the survey to access its questions
-	survey, err := r.GetSurveyByID(ctx, surveyID)
+	survey, err := r.FindByID(ctx, surveyID)
 	if err != nil {
 		return nil, rescode.Failed(err)
 	}
@@ -771,8 +707,8 @@ func parseFloat(s string) (float64, error) {
 	return f, err
 }
 
-// GetSurveyBySlug gets a survey by slug
-func (r *SurveyRepository) GetSurveyBySlug(ctx context.Context, slug string) (*entity.Survey, error) {
+// FindBySlug gets a survey by slug
+func (r *SurveyRepository) FindBySlug(ctx context.Context, slug string) (*entity.Survey, error) {
 	query := r.sb.Select("id", "slug", "title", "description", "questions", "min_completion_time_min", "created_at", "updated_at", "created_by", "tags", "finishes_at").
 		From("surveys").
 		Where(squirrel.Eq{"slug": slug})
@@ -823,8 +759,8 @@ func (r *SurveyRepository) GetSurveyBySlug(ctx context.Context, slug string) (*e
 	return &survey, nil
 }
 
-// CountSurveyParticipants counts the number of completed responses for a survey
-func (r *SurveyRepository) CountSurveyParticipants(ctx context.Context, surveyID string) (int, error) {
+// CountParticipants counts the number of completed responses for a survey
+func (r *SurveyRepository) CountParticipants(ctx context.Context, surveyID string) (int, error) {
 	// Parse UUID from string
 	surveyUUID, err := parseUUID(surveyID)
 	if err != nil {
@@ -849,8 +785,8 @@ func (r *SurveyRepository) CountSurveyParticipants(ctx context.Context, surveyID
 	return count, nil
 }
 
-// ListSurveysWithPagination lists surveys with pagination and filtering
-func (r *SurveyRepository) ListSurveysWithPagination(ctx context.Context, req *list.PagiRequest, filterReq *entity.SurveyListRequest) (*list.PagiResponse[*entity.SurveyListItem], error) {
+// List lists surveys with pagination and filtering
+func (r *SurveyRepository) List(ctx context.Context, req *list.PagiRequest, filterReq *entity.SurveyListRequest) (*list.PagiResponse[*entity.ViewSurveyList], error) {
 	// Set default values for pagination
 	req.Default()
 
@@ -917,7 +853,7 @@ func (r *SurveyRepository) ListSurveysWithPagination(ctx context.Context, req *l
 	}
 	defer rows.Close()
 
-	var surveyItems []*entity.SurveyListItem
+	var surveyItems []*entity.ViewSurveyList
 
 	for rows.Next() {
 		var survey entity.Survey
@@ -961,7 +897,7 @@ func (r *SurveyRepository) ListSurveysWithPagination(ctx context.Context, req *l
 	}
 
 	// Create pagination response
-	response := &list.PagiResponse[*entity.SurveyListItem]{
+	response := &list.PagiResponse[*entity.ViewSurveyList]{
 		Page:  *req.Page,
 		Limit: *req.Limit,
 		List:  surveyItems,

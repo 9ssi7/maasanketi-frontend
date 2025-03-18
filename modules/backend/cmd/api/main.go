@@ -39,18 +39,21 @@ func (a *Application) Register() {
 	// API v1 routes
 	v1 := a.app.Group("/api/v1")
 
-	// Register survey handler
-	surveyHandler := handler.NewSurveyHandler(a.repo.Survey)
-	surveyHandler.RegisterRoutes(v1.Group("/surveys"))
-	// Protected routes (require authentication)
+	survey := v1.Group("/surveys")
+	survey.Get("/", handler.SurveyList(a.repo.Survey))
+	survey.Get("/:slug", handler.SurveyView(a.repo.Survey))
+	survey.Get("/:slug/stats", handler.SurveyStats(a.repo.Survey))
+	survey.Post("/:slug/responses", handler.SurveyResponseStart(a.repo.Survey))
+	survey.Patch("/:slug/responses/:responseId", handler.SurveyResponseComplete(a.repo.Survey))
+
 	user := v1.Group("/user")
 	user.Use(middleware.GoogleAuth()) // Apply Google authentication middleware
-	user.Get("/profile", handler.GetUserProfile)
+	user.Get("/profile", handler.ViewProfile)
 }
 
-// @title Software Engineer Salary Survey API
+// @title Maasanketi API
 // @version 1.0
-// @description API for the Software Engineer Salary Survey platform
+// @description API for the Maasanketi platform
 // @termsOfService http://swagger.io/terms/
 // @contact.name API Support
 // @contact.url http://www.maasanketi.co/support

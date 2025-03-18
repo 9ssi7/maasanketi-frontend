@@ -2,8 +2,8 @@ package entity
 
 import "time"
 
-// SurveyListItem represents a survey in a list view without questions
-type SurveyListItem struct {
+// ViewSurveyList represents a survey in a list view without questions
+type ViewSurveyList struct {
 	ID                   string     `json:"id"`
 	Slug                 string     `json:"slug"`
 	Title                string     `json:"title"`
@@ -15,7 +15,14 @@ type SurveyListItem struct {
 	Tags                 []string   `json:"tags,omitempty"`
 	Participants         int        `json:"participants"` // Number of completed responses
 	FinishesAt           *time.Time `json:"finishesAt,omitempty"`
-}
+} // @name entity.ViewSurveyList
+
+type ViewSurveyResponse struct {
+	ID         string    `json:"id"`
+	SurveySlug string    `json:"surveySlug"`
+	StartedAt  time.Time `json:"startedAt"`
+	Answers    Answers   `json:"answers"`
+} // @name entity.ViewSurveyResponse
 
 // SurveyListRequest represents the request parameters for listing surveys
 type SurveyListRequest struct {
@@ -26,8 +33,8 @@ type SurveyListRequest struct {
 }
 
 // ToListItem converts a Survey to a SurveyListItem
-func (s *Survey) ToListItem(participants int) *SurveyListItem {
-	return &SurveyListItem{
+func (s *Survey) ToListItem(participants int) *ViewSurveyList {
+	return &ViewSurveyList{
 		ID:                   s.ID,
 		Slug:                 s.Slug,
 		Title:                s.Title,
@@ -39,5 +46,14 @@ func (s *Survey) ToListItem(participants int) *SurveyListItem {
 		Tags:                 s.Tags,
 		Participants:         participants,
 		FinishesAt:           s.FinishesAt,
+	}
+}
+
+func (s *SurveyResponse) ToViewSurveyResponse() *ViewSurveyResponse {
+	return &ViewSurveyResponse{
+		ID:         s.ID,
+		SurveySlug: s.SurveySlug,
+		StartedAt:  s.StartedAt,
+		Answers:    s.Answers,
 	}
 }
