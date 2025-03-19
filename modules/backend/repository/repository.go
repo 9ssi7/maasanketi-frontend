@@ -15,8 +15,10 @@ import (
 type Repository struct {
 	pool *pgxpool.Pool
 
-	Survey   *postgres.SurveyRepository
-	Response *postgres.ResponseRepository
+	Survey        *postgres.SurveyRepository
+	Response      *postgres.ResponseRepository
+	Graph         *postgres.GraphRepository
+	ResponseGraph *postgres.ResponseGraphRepository
 }
 
 func New() (*Repository, error) {
@@ -56,6 +58,8 @@ func New() (*Repository, error) {
 	// Initialize repositories
 	repo.Survey = postgres.NewSurveyRepository(pool)
 	repo.Response = postgres.NewResponseRepository(pool)
+	repo.Graph = postgres.NewGraphRepository(pool)
+	repo.ResponseGraph = postgres.NewResponseGraphRepository(pool)
 	return repo, nil
 }
 

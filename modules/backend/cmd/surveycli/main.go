@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/mstrYoda/maasanketi.co/domain/resgraph"
 	"github.com/mstrYoda/maasanketi.co/domain/survey"
 	log "github.com/mstrYoda/maasanketi.co/pkg/logger"
 	"github.com/mstrYoda/maasanketi.co/repository"
@@ -150,6 +151,35 @@ func main() {
 			log.Logger().Fatal("database operation timed out after 30 seconds")
 		}
 		log.Logger().Fatal(fmt.Sprintf("failed to create survey: %s", err.Error()))
+	}
+
+	// Create default graphs
+	graphs := DefaultGraphs(s.ID)
+	for _, g := range graphs {
+		if err := repo.Graph.Create(dbCtx, g); err != nil {
+			if dbCtx.Err() == context.DeadlineExceeded {
+				log.Logger().Fatal("database operation timed out after 30 seconds")
+			}
+			log.Logger().Fatal(fmt.Sprintf("failed to create graph: %s", err.Error()))
+		}
+
+		resgraph := &resgraph.ResponseGraph{
+			SurveyID: s.ID,
+			GraphID:  g.ID,
+			Content: resgraph.ResponseGraphContent{
+				Keys:   []string{},
+				Values: []string{},
+			},
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		}
+
+		if err := repo.ResponseGraph.Create(dbCtx, resgraph); err != nil {
+			if dbCtx.Err() == context.DeadlineExceeded {
+				log.Logger().Fatal("database operation timed out after 30 seconds")
+			}
+			log.Logger().Fatal(fmt.Sprintf("failed to create response graph: %s", err.Error()))
+		}
 	}
 
 	fmt.Printf("Survey created successfully with ID: %s\n", s.ID)
