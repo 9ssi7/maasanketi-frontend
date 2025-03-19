@@ -35,7 +35,6 @@ services:
     build:
       context: ./modules/web
       dockerfile: Dockerfile.dev
-    restart: always
     volumes:
       - ./modules/web/:/app
       - /app/node_modules

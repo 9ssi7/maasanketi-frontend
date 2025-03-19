@@ -80,7 +80,7 @@ func (s *Survey) validateSelect(answers Answers, question Question) error {
 }
 
 func (s *Survey) validateMultiSelect(answers Answers, question Question) error {
-	val, ok := answers[question.ID].([]string)
+	val, ok := answers[question.ID].([]interface{})
 	if !ok {
 		if question.Required {
 			return s.newValidationError(question.ID, "This field is required")
@@ -89,6 +89,11 @@ func (s *Survey) validateMultiSelect(answers Answers, question Question) error {
 	}
 	if len(val) == 0 {
 		return s.newValidationError(question.ID, "This field is mandatory")
+	}
+	for _, v := range val {
+		if _, ok := v.(string); !ok {
+			return s.newValidationError(question.ID, "This field must be an array of strings")
+		}
 	}
 	return nil
 }

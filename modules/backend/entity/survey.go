@@ -66,7 +66,7 @@ type Answers map[string]interface{}
 // SurveyResponse represents a user's response to a survey
 type SurveyResponse struct {
 	ID          string     `json:"id"`
-	SurveySlug  string     `json:"surveySlug"`
+	SurveyID    string     `json:"surveyId"`
 	UserID      string     `json:"userId,omitempty"` // Optional, for authenticated users
 	Answers     Answers    `json:"answers"`          // Map of question ID to answer
 	StartedAt   time.Time  `json:"startedAt"`

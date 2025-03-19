@@ -27,15 +27,14 @@ func SurveyStats(repo repository.SurveyRepository) fiber.Handler {
 		if err := c.ParamsParser(&req); err != nil {
 			return rescode.ValidationFailed(err)
 		}
-		_, err := repo.FindBySlug(c.UserContext(), req.Slug)
+		survey, err := repo.FindBySlug(c.UserContext(), req.Slug)
 		if err != nil {
 			return err
 		}
-		stats, err := repo.ResponseStats(c.UserContext(), req.Slug)
+		stats, err := repo.ResponseStats(c.UserContext(), survey.ID)
 		if err != nil {
 			return err
 		}
-
 		return c.JSON(stats)
 	}
 }

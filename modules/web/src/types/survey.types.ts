@@ -1,5 +1,6 @@
 // Question types
 export type QuestionType = 'text' | 'number' | 'select' | 'multi-select' | 'boolean';
+export type SurveyAnswers = Record<string, any>;
 
 // Option for select and multi-select questions
 export interface Option {
@@ -42,7 +43,7 @@ export interface SurveyResponse {
   id: string;
   surveySlug: string;
   userId?: string;
-  answers: Record<string, any>;
+  answers: SurveyAnswers;
   startedAt: string;
   completedAt?: string;
   ipAddress: string;
@@ -53,35 +54,9 @@ export interface SurveyResponse {
   updatedAt: string;
 }
 
-// API request/response types
-
-// Response for listing surveys
-export interface ListSurveysResponse {
-  surveys: Survey[];
-}
 
 // Response for getting a survey
 export type GetSurveyResponse = Survey;
-
-// Request for starting a survey response - no body needed
-export type StartSurveyResponseRequest = Record<string, never>;
-
-// Response for starting a survey response
-export type StartSurveyResponseResponse = SurveyResponse;
-
-// Request for updating a survey response
-export interface UpdateSurveyResponseRequest {
-  answers: Record<string, any>;
-}
-
-// Response for updating a survey response
-export type UpdateSurveyResponseResponse = SurveyResponse;
-
-// Request for completing a survey response - no body needed
-export type CompleteSurveyResponseRequest = Record<string, never>;
-
-// Response for completing a survey response
-export type CompleteSurveyResponseResponse = SurveyResponse;
 
 // Response for listing survey responses
 export interface ListSurveyResponsesResponse {
@@ -125,6 +100,24 @@ export interface SurveyListRequest {
   sort?: SurveySort;
   search?: string;
   hideExpired?: boolean;
+}
+
+export interface SurveyResponseStartRequest {
+  surveySlug: string
+  is_anonymous: boolean
+}
+
+export interface SurveyResponseStartResponse {
+  id: string
+  surveySlug: string
+  startedAt: string
+  answers: SurveyAnswers
+}
+
+export interface SurveyResponseCompleteRequest {
+  slug: string
+  responseId: string
+  answers: SurveyAnswers
 }
 
 export function isSurveyListItem(survey: unknown): survey is SurveyListItem {

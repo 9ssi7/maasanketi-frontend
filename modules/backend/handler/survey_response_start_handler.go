@@ -12,8 +12,8 @@ import (
 )
 
 type SurveyResponseStartRequest struct {
-	SurveySlug  string `params:"survey_slug" validate:"required,slug"`
-	IsAnonymous *bool  `json:"is_anonymous" validate:"required"`
+	SurveySlug  string `params:"slug" validate:"required,slug"`
+	IsAnonymous *bool  `json:"isAnonymous" validate:"required"`
 } // @name SurveyResponseStartRequest
 
 // SurveyResponseStart starts a new survey response
@@ -51,7 +51,7 @@ func SurveyResponseStart(repo repository.SurveyRepository) fiber.Handler {
 		// Create a new response
 		response := &entity.SurveyResponse{
 			ID:          uuid.New().String(),
-			SurveySlug:  req.SurveySlug,
+			SurveyID:    survey.ID,
 			Answers:     entity.Answers{},
 			StartedAt:   time.Now(),
 			IPAddress:   c.IP(),

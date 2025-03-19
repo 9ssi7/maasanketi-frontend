@@ -18,10 +18,10 @@ type ViewSurveyList struct {
 } // @name entity.ViewSurveyList
 
 type ViewSurveyResponse struct {
-	ID         string    `json:"id"`
-	SurveySlug string    `json:"surveySlug"`
-	StartedAt  time.Time `json:"startedAt"`
-	Answers    Answers   `json:"answers"`
+	ID        string    `json:"id"`
+	SurveyID  string    `json:"surveyId"`
+	StartedAt time.Time `json:"startedAt"`
+	Answers   Answers   `json:"answers"`
 } // @name entity.ViewSurveyResponse
 
 // SurveyListRequest represents the request parameters for listing surveys
@@ -51,9 +51,9 @@ func (s *Survey) ToListItem(participants int) *ViewSurveyList {
 
 func (s *SurveyResponse) ToViewSurveyResponse() *ViewSurveyResponse {
 	return &ViewSurveyResponse{
-		ID:         s.ID,
-		SurveySlug: s.SurveySlug,
-		StartedAt:  s.StartedAt,
-		Answers:    s.Answers,
+		ID:        s.ID,
+		SurveyID:  s.SurveyID,
+		StartedAt: s.StartedAt,
+		Answers:   s.Answers,
 	}
 }

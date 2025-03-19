@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { SurveyListItem } from "../../../types/survey.types";
 
 type Props = SurveyListItem;
@@ -28,7 +29,12 @@ export default function SurveyCard({ ...survey }: Props) {
       </div>
 
       <div className="survey-actions">
-        <button className="participate-button">Participate</button>
+        <Link
+          to={`/surveys/${survey.slug}/participate`}
+          className="participate-button"
+        >
+          Participate
+        </Link>
         <button className="details-button">View Details</button>
       </div>
     </div>

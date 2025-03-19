@@ -31,11 +31,6 @@ func NewSurveyRepository(db *pgxpool.Pool) *SurveyRepository {
 	}
 }
 
-// parseUUID parses a string to UUID
-func parseUUID(id string) (uuid.UUID, error) {
-	return uuid.Parse(id)
-}
-
 // CreateSuCreatervey creates a new survey
 func (r *SurveyRepository) Create(ctx context.Context, survey *entity.Survey) error {
 	questionsJSON, err := json.Marshal(survey.Questions)
@@ -48,12 +43,6 @@ func (r *SurveyRepository) Create(ctx context.Context, survey *entity.Survey) er
 		return rescode.Failed(err)
 	}
 
-	// Parse UUID from string
-	surveyUUID, err := parseUUID(survey.ID)
-	if err != nil {
-		return rescode.IDInvalid(err)
-	}
-
 	// Generate slug if not provided
 	if survey.Slug == "" {
 		survey.GenerateSlug()
@@ -61,7 +50,7 @@ func (r *SurveyRepository) Create(ctx context.Context, survey *entity.Survey) er
 
 	query := r.sb.Insert("surveys").
 		Columns("id", "slug", "title", "description", "questions", "min_completion_time_min", "created_at", "updated_at", "created_by", "tags", "finishes_at").
-		Values(surveyUUID, survey.Slug, survey.Title, survey.Description, questionsJSON, survey.MinCompletionTimeMin, survey.CreatedAt, survey.UpdatedAt, survey.CreatedBy, tagsJSON, survey.FinishesAt)
+		Values(uuid.MustParse(survey.ID), survey.Slug, survey.Title, survey.Description, questionsJSON, survey.MinCompletionTimeMin, survey.CreatedAt, survey.UpdatedAt, survey.CreatedBy, tagsJSON, survey.FinishesAt)
 
 	sql, args, err := query.ToSql()
 	if err != nil {
@@ -78,15 +67,9 @@ func (r *SurveyRepository) Create(ctx context.Context, survey *entity.Survey) er
 
 // FindByID gets a survey by ID
 func (r *SurveyRepository) FindByID(ctx context.Context, id string) (*entity.Survey, error) {
-	// Parse UUID from string
-	surveyUUID, err := parseUUID(id)
-	if err != nil {
-		return nil, rescode.IDInvalid(err)
-	}
-
 	query := r.sb.Select("id", "slug", "title", "description", "questions", "min_completion_time_min", "created_at", "updated_at", "created_by", "tags", "finishes_at").
 		From("surveys").
-		Where(squirrel.Eq{"id": surveyUUID})
+		Where(squirrel.Eq{"id": uuid.MustParse(id)})
 
 	sql, args, err := query.ToSql()
 	if err != nil {
@@ -146,12 +129,6 @@ func (r *SurveyRepository) Update(ctx context.Context, survey *entity.Survey) er
 		return rescode.Failed(err)
 	}
 
-	// Parse UUID from string
-	surveyUUID, err := parseUUID(survey.ID)
-	if err != nil {
-		return rescode.IDInvalid(err)
-	}
-
 	query := r.sb.Update("surveys").
 		Set("title", survey.Title).
 		Set("description", survey.Description).
@@ -161,7 +138,7 @@ func (r *SurveyRepository) Update(ctx context.Context, survey *entity.Survey) er
 		Set("created_by", survey.CreatedBy).
 		Set("tags", tagsJSON).
 		Set("finishes_at", survey.FinishesAt).
-		Where(squirrel.Eq{"id": surveyUUID})
+		Where(squirrel.Eq{"id": uuid.MustParse(survey.ID)})
 
 	sql, args, err := query.ToSql()
 	if err != nil {
@@ -182,13 +159,7 @@ func (r *SurveyRepository) Update(ctx context.Context, survey *entity.Survey) er
 
 // Delete deletes a survey
 func (r *SurveyRepository) Delete(ctx context.Context, id string) error {
-	// Parse UUID from string
-	surveyUUID, err := parseUUID(id)
-	if err != nil {
-		return rescode.IDInvalid(err)
-	}
-
-	query := r.sb.Delete("surveys").Where(squirrel.Eq{"id": surveyUUID})
+	query := r.sb.Delete("surveys").Where(squirrel.Eq{"id": uuid.MustParse(id)})
 
 	sql, args, err := query.ToSql()
 	if err != nil {
@@ -214,22 +185,7 @@ func (r *SurveyRepository) ResponseCreate(ctx context.Context, response *entity.
 		return rescode.Failed(err)
 	}
 
-	// Parse UUIDs from strings
-	responseUUID, err := parseUUID(response.ID)
-	if err != nil {
-		return rescode.IDInvalid(err)
-	}
-
-	var userUUID *uuid.UUID
-	if response.UserID != "" {
-		parsedUserUUID, err := parseUUID(response.UserID)
-		if err != nil {
-			return rescode.IDInvalid(err)
-		}
-		userUUID = &parsedUserUUID
-	}
-
-	survey, err := r.FindBySlug(ctx, response.SurveySlug)
+	survey, err := r.FindByID(ctx, response.SurveyID)
 	if err != nil {
 		return rescode.SurveyNotFound(err)
 	}
@@ -237,11 +193,11 @@ func (r *SurveyRepository) ResponseCreate(ctx context.Context, response *entity.
 	query := r.sb.Insert("survey_responses").
 		Columns("id", "survey_id", "user_id", "answers", "started_at", "completed_at", "ip_address", "user_agent", "is_completed", "is_anonymous", "created_at", "updated_at")
 
-	if userUUID != nil {
+	if response.UserID != "" {
 		query = query.Values(
-			responseUUID,
+			uuid.MustParse(response.ID),
 			survey.ID,
-			userUUID,
+			uuid.MustParse(response.UserID),
 			answersJSON,
 			response.StartedAt,
 			response.CompletedAt,
@@ -254,7 +210,7 @@ func (r *SurveyRepository) ResponseCreate(ctx context.Context, response *entity.
 		)
 	} else {
 		query = query.Values(
-			responseUUID,
+			uuid.MustParse(response.ID),
 			survey.ID,
 			nil,
 			answersJSON,
@@ -284,15 +240,9 @@ func (r *SurveyRepository) ResponseCreate(ctx context.Context, response *entity.
 
 // ResponseFindByID gets a survey response by ID
 func (r *SurveyRepository) ResponseFindByID(ctx context.Context, id string) (*entity.SurveyResponse, error) {
-	// Parse UUID from string
-	responseUUID, err := parseUUID(id)
-	if err != nil {
-		return nil, rescode.IDInvalid(err)
-	}
-
 	query := r.sb.Select("id", "survey_id", "user_id", "answers", "started_at", "completed_at", "ip_address", "user_agent", "is_completed", "is_anonymous", "created_at", "updated_at").
 		From("survey_responses").
-		Where(squirrel.Eq{"id": responseUUID})
+		Where(squirrel.Eq{"id": uuid.MustParse(id)})
 
 	sql, args, err := query.ToSql()
 	if err != nil {
@@ -302,13 +252,13 @@ func (r *SurveyRepository) ResponseFindByID(ctx context.Context, id string) (*en
 	var response entity.SurveyResponse
 	var answersJSON []byte
 	var completedAt *time.Time
-	var responseIDUUID uuid.UUID
-	var surveySlug string
+	var responseID uuid.UUID
+	var surveyID string
 	var userID *uuid.UUID
 
 	err = r.db.QueryRow(ctx, sql, args...).Scan(
-		&responseIDUUID,
-		&surveySlug,
+		&responseID,
+		&surveyID,
 		&userID,
 		&answersJSON,
 		&response.StartedAt,
@@ -328,8 +278,8 @@ func (r *SurveyRepository) ResponseFindByID(ctx context.Context, id string) (*en
 		return nil, rescode.Failed(err)
 	}
 
-	response.ID = responseIDUUID.String()
-	response.SurveySlug = surveySlug
+	response.ID = responseID.String()
+	response.SurveyID = surveyID
 	if userID != nil {
 		response.UserID = userID.String()
 	}
@@ -350,18 +300,12 @@ func (r *SurveyRepository) ResponseUpdate(ctx context.Context, response *entity.
 		return rescode.Failed(err)
 	}
 
-	// Parse UUID from string
-	responseUUID, err := parseUUID(response.ID)
-	if err != nil {
-		return rescode.IDInvalid(err)
-	}
-
 	query := r.sb.Update("survey_responses").
 		Set("answers", answersJSON).
 		Set("completed_at", response.CompletedAt).
 		Set("is_completed", response.IsCompleted).
 		Set("updated_at", response.UpdatedAt).
-		Where(squirrel.Eq{"id": responseUUID})
+		Where(squirrel.Eq{"id": uuid.MustParse(response.ID)})
 
 	sql, args, err := query.ToSql()
 	if err != nil {
@@ -381,10 +325,10 @@ func (r *SurveyRepository) ResponseUpdate(ctx context.Context, response *entity.
 }
 
 // ResponseList lists all responses for a survey
-func (r *SurveyRepository) ResponseList(ctx context.Context, surveySlug string) ([]*entity.SurveyResponse, error) {
-	query := r.sb.Select("id", "survey_slug", "user_id", "answers", "started_at", "completed_at", "ip_address", "user_agent", "is_completed", "is_anonymous", "created_at", "updated_at").
+func (r *SurveyRepository) ResponseList(ctx context.Context, surveyID string) ([]*entity.SurveyResponse, error) {
+	query := r.sb.Select("id", "survey_id", "user_id", "answers", "started_at", "completed_at", "ip_address", "user_agent", "is_completed", "is_anonymous", "created_at", "updated_at").
 		From("survey_responses").
-		Where(squirrel.Eq{"survey_slug": surveySlug}).
+		Where(squirrel.Eq{"survey_id": uuid.MustParse(surveyID)}).
 		OrderBy("created_at DESC")
 
 	sql, args, err := query.ToSql()
@@ -405,12 +349,12 @@ func (r *SurveyRepository) ResponseList(ctx context.Context, surveySlug string) 
 		var answersJSON []byte
 		var completedAt *time.Time
 		var responseIDUUID uuid.UUID
-		var surveySlug string
+		var surveyID string
 		var userIDUUID *uuid.UUID
 
 		err := rows.Scan(
 			&responseIDUUID,
-			&surveySlug,
+			&surveyID,
 			&userIDUUID,
 			&answersJSON,
 			&response.StartedAt,
@@ -427,7 +371,7 @@ func (r *SurveyRepository) ResponseList(ctx context.Context, surveySlug string) 
 		}
 
 		response.ID = responseIDUUID.String()
-		response.SurveySlug = surveySlug
+		response.SurveyID = surveyID
 		if userIDUUID != nil {
 			response.UserID = userIDUUID.String()
 		}
@@ -456,16 +400,10 @@ func (r *SurveyRepository) ResponseStats(ctx context.Context, surveyID string) (
 		return nil, rescode.Failed(err)
 	}
 
-	// Parse UUID from string
-	surveyUUID, err := parseUUID(surveyID)
-	if err != nil {
-		return nil, rescode.IDInvalid(err)
-	}
-
 	// Get all completed responses for the survey
 	query := r.sb.Select("answers").
 		From("survey_responses").
-		Where(squirrel.Eq{"survey_id": surveyUUID, "is_completed": true})
+		Where(squirrel.Eq{"survey_id": uuid.MustParse(surveyID), "is_completed": true})
 
 	sql, args, err := query.ToSql()
 	if err != nil {
@@ -761,15 +699,9 @@ func (r *SurveyRepository) FindBySlug(ctx context.Context, slug string) (*entity
 
 // CountParticipants counts the number of completed responses for a survey
 func (r *SurveyRepository) CountParticipants(ctx context.Context, surveyID string) (int, error) {
-	// Parse UUID from string
-	surveyUUID, err := parseUUID(surveyID)
-	if err != nil {
-		return 0, rescode.IDInvalid(err)
-	}
-
 	query := r.sb.Select("COUNT(*)").
 		From("survey_responses").
-		Where(squirrel.Eq{"survey_id": surveyUUID, "is_completed": true})
+		Where(squirrel.Eq{"survey_id": uuid.MustParse(surveyID), "is_completed": true})
 
 	sql, args, err := query.ToSql()
 	if err != nil {

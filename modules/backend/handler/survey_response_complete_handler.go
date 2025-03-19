@@ -49,7 +49,7 @@ func SurveyResponseComplete(repo repository.SurveyRepository) fiber.Handler {
 		if err != nil {
 			return rescode.SurveyNotFound(errors.New("survey response not found"))
 		}
-		if response.SurveySlug != survey.Slug {
+		if response.SurveyID != survey.ID {
 			return rescode.SurveyResponseNotFound(errors.New("survey response does not belong to the specified survey"))
 		}
 		if err := survey.ValidateAnswers(req.Answers); err != nil {
