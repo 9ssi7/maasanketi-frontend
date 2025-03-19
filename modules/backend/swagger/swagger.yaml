@@ -1,17 +1,6 @@
 basePath: /api/v1
 definitions:
-  SurveyListResponse:
-    properties:
-      limit:
-        type: integer
-      list:
-        items:
-          $ref: '#/definitions/entity.ViewSurveyList'
-        type: array
-      page:
-        type: integer
-    type: object
-  SurveyResponseCompleteRequest:
+  ResponseCompleteRequest:
     properties:
       answers:
         additionalProperties: true
@@ -25,32 +14,65 @@ definitions:
     - responseID
     - slug
     type: object
-  entity.Answers:
+  SurveyListResponse:
+    properties:
+      limit:
+        type: integer
+      list:
+        items:
+          $ref: '#/definitions/survey.ViewList'
+        type: array
+      page:
+        type: integer
+    type: object
+  handler.UserProfile:
+    properties:
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      picture:
+        type: string
+    type: object
+  response.Answers:
     additionalProperties: true
     type: object
-  entity.Conditional:
+  response.ViewDefault:
+    properties:
+      answers:
+        $ref: '#/definitions/response.Answers'
+      id:
+        type: string
+      startedAt:
+        type: string
+      surveyId:
+        type: string
+    type: object
+  survey.Conditional:
     properties:
       questionId:
         type: string
       value:
         type: string
     type: object
-  entity.Option:
+  survey.Option:
     properties:
       id:
         type: string
       value:
         type: string
     type: object
-  entity.Question:
+  survey.Question:
     properties:
       conditional:
-        $ref: '#/definitions/entity.Conditional'
+        $ref: '#/definitions/survey.Conditional'
       id:
         type: string
       options:
         items:
-          $ref: '#/definitions/entity.Option'
+          $ref: '#/definitions/survey.Option'
         type: array
       order:
         type: integer
@@ -61,9 +83,9 @@ definitions:
       text:
         type: string
       type:
-        $ref: '#/definitions/entity.QuestionType'
+        $ref: '#/definitions/survey.QuestionType'
     type: object
-  entity.QuestionType:
+  survey.QuestionType:
     enum:
     - text
     - number
@@ -77,7 +99,7 @@ definitions:
     - QuestionTypeSelect
     - QuestionTypeMultiSelect
     - QuestionTypeBoolean
-  entity.Survey:
+  survey.Survey:
     properties:
       createdAt:
         type: string
@@ -95,7 +117,7 @@ definitions:
         type: integer
       questions:
         items:
-          $ref: '#/definitions/entity.Question'
+          $ref: '#/definitions/survey.Question'
         type: array
       slug:
         type: string
@@ -109,7 +131,7 @@ definitions:
       updatedAt:
         type: string
     type: object
-  entity.ViewSurveyList:
+  survey.ViewList:
     properties:
       createdAt:
         type: string
@@ -135,28 +157,6 @@ definitions:
       title:
         type: string
       updatedAt:
-        type: string
-    type: object
-  entity.ViewSurveyResponse:
-    properties:
-      answers:
-        $ref: '#/definitions/entity.Answers'
-      id:
-        type: string
-      startedAt:
-        type: string
-      surveySlug:
-        type: string
-    type: object
-  handler.UserProfile:
-    properties:
-      email:
-        type: string
-      id:
-        type: string
-      name:
-        type: string
-      picture:
         type: string
     type: object
 host: localhost:4004
@@ -279,7 +279,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/entity.Survey'
+            $ref: '#/definitions/survey.Survey'
         "404":
           description: Not Found
           schema:
@@ -315,7 +315,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/entity.ViewSurveyResponse'
+            $ref: '#/definitions/response.ViewDefault'
         "400":
           description: Bad Request
           schema:
@@ -355,14 +355,14 @@ paths:
         name: response
         required: true
         schema:
-          $ref: '#/definitions/SurveyResponseCompleteRequest'
+          $ref: '#/definitions/ResponseCompleteRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/entity.ViewSurveyResponse'
+            $ref: '#/definitions/response.ViewDefault'
         "400":
           description: Bad Request
           schema:
@@ -381,38 +381,6 @@ paths:
       summary: Complete a survey response
       tags:
       - survey-responses
-  /surveys/{slug}/stats:
-    get:
-      consumes:
-      - application/json
-      description: Get aggregated statistics for a specific survey
-      parameters:
-      - description: Survey Slug
-        in: path
-        name: slug
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
-            type: object
-        "404":
-          description: Not Found
-          schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Get statistics for a survey
-      tags:
-      - surveys
 schemes:
 - http
 - https

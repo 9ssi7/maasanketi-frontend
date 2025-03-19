@@ -1,17 +1,22 @@
 package handler
 
 import (
+	"context"
+
 	"github.com/gofiber/fiber/v2"
-	"github.com/mstrYoda/maasanketi.co/entity"
+	"github.com/mstrYoda/maasanketi.co/domain/survey"
 	"github.com/mstrYoda/maasanketi.co/pkg/list"
 	"github.com/mstrYoda/maasanketi.co/pkg/rescode"
-	"github.com/mstrYoda/maasanketi.co/repository"
 )
 
+type SurveyListRepo interface {
+	List(ctx context.Context, pagi *list.PagiRequest, filter *survey.SurveyListFilters) (*list.PagiResponse[*survey.ViewList], error)
+}
+
 type SurveyListResponse struct {
-	Page  uint64                  `json:"page"`
-	Limit uint64                  `json:"limit"`
-	List  []entity.ViewSurveyList `json:"list"`
+	Page  uint64            `json:"page"`
+	Limit uint64            `json:"limit"`
+	List  []survey.ViewList `json:"list"`
 } // @name SurveyListResponse
 
 // SurveyList lists all surveys with pagination and filtering
@@ -30,13 +35,13 @@ type SurveyListResponse struct {
 // @Failure 400 {object} map[string]interface{}
 // @Failure 500 {object} map[string]interface{}
 // @Router /surveys [get]
-func SurveyList(repo repository.SurveyRepository) fiber.Handler {
+func SurveyList(repo SurveyListRepo) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var pagi list.PagiRequest
 		if err := c.QueryParser(&pagi); err != nil {
 			return rescode.ValidationFailed(err)
 		}
-		var filter entity.SurveyListRequest
+		var filter survey.SurveyListFilters
 		if err := c.QueryParser(&filter); err != nil {
 			return rescode.ValidationFailed(err)
 		}

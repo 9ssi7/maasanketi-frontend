@@ -7,21 +7,16 @@ import (
 
 	"os"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5/pgxpool"
 	log "github.com/mstrYoda/maasanketi.co/pkg/logger"
 	"github.com/mstrYoda/maasanketi.co/repository/postgres"
 )
 
-var (
-	psql = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-)
-
 type Repository struct {
 	pool *pgxpool.Pool
 
-	// Repositories
-	Survey SurveyRepository
+	Survey   *postgres.SurveyRepository
+	Response *postgres.ResponseRepository
 }
 
 func New() (*Repository, error) {
@@ -60,7 +55,7 @@ func New() (*Repository, error) {
 
 	// Initialize repositories
 	repo.Survey = postgres.NewSurveyRepository(pool)
-
+	repo.Response = postgres.NewResponseRepository(pool)
 	return repo, nil
 }
 

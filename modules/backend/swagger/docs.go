@@ -185,7 +185,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/entity.Survey"
+                            "$ref": "#/definitions/survey.Survey"
                         }
                     },
                     "404": {
@@ -239,7 +239,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/entity.ViewSurveyResponse"
+                            "$ref": "#/definitions/response.ViewDefault"
                         }
                     },
                     "400": {
@@ -300,7 +300,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/SurveyResponseCompleteRequest"
+                            "$ref": "#/definitions/ResponseCompleteRequest"
                         }
                     }
                 ],
@@ -308,7 +308,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/entity.ViewSurveyResponse"
+                            "$ref": "#/definitions/response.ViewDefault"
                         }
                     },
                     "400": {
@@ -334,74 +334,10 @@ const docTemplate = `{
                     }
                 }
             }
-        },
-        "/surveys/{slug}/stats": {
-            "get": {
-                "description": "Get aggregated statistics for a specific survey",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "surveys"
-                ],
-                "summary": "Get statistics for a survey",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Survey Slug",
-                        "name": "slug",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
         }
     },
     "definitions": {
-        "SurveyListResponse": {
-            "type": "object",
-            "properties": {
-                "limit": {
-                    "type": "integer"
-                },
-                "list": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/entity.ViewSurveyList"
-                    }
-                },
-                "page": {
-                    "type": "integer"
-                }
-            }
-        },
-        "SurveyResponseCompleteRequest": {
+        "ResponseCompleteRequest": {
             "type": "object",
             "required": [
                 "answers",
@@ -421,11 +357,62 @@ const docTemplate = `{
                 }
             }
         },
-        "entity.Answers": {
+        "SurveyListResponse": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer"
+                },
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/survey.ViewList"
+                    }
+                },
+                "page": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handler.UserProfile": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "picture": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.Answers": {
             "type": "object",
             "additionalProperties": true
         },
-        "entity.Conditional": {
+        "response.ViewDefault": {
+            "type": "object",
+            "properties": {
+                "answers": {
+                    "$ref": "#/definitions/response.Answers"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "startedAt": {
+                    "type": "string"
+                },
+                "surveyId": {
+                    "type": "string"
+                }
+            }
+        },
+        "survey.Conditional": {
             "type": "object",
             "properties": {
                 "questionId": {
@@ -436,7 +423,7 @@ const docTemplate = `{
                 }
             }
         },
-        "entity.Option": {
+        "survey.Option": {
             "type": "object",
             "properties": {
                 "id": {
@@ -447,11 +434,11 @@ const docTemplate = `{
                 }
             }
         },
-        "entity.Question": {
+        "survey.Question": {
             "type": "object",
             "properties": {
                 "conditional": {
-                    "$ref": "#/definitions/entity.Conditional"
+                    "$ref": "#/definitions/survey.Conditional"
                 },
                 "id": {
                     "type": "string"
@@ -459,7 +446,7 @@ const docTemplate = `{
                 "options": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/entity.Option"
+                        "$ref": "#/definitions/survey.Option"
                     }
                 },
                 "order": {
@@ -475,11 +462,11 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "type": {
-                    "$ref": "#/definitions/entity.QuestionType"
+                    "$ref": "#/definitions/survey.QuestionType"
                 }
             }
         },
-        "entity.QuestionType": {
+        "survey.QuestionType": {
             "type": "string",
             "enum": [
                 "text",
@@ -496,7 +483,7 @@ const docTemplate = `{
                 "QuestionTypeBoolean"
             ]
         },
-        "entity.Survey": {
+        "survey.Survey": {
             "type": "object",
             "properties": {
                 "createdAt": {
@@ -522,7 +509,7 @@ const docTemplate = `{
                 "questions": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/entity.Question"
+                        "$ref": "#/definitions/survey.Question"
                     }
                 },
                 "slug": {
@@ -543,7 +530,7 @@ const docTemplate = `{
                 }
             }
         },
-        "entity.ViewSurveyList": {
+        "survey.ViewList": {
             "type": "object",
             "properties": {
                 "createdAt": {
@@ -581,40 +568,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "updatedAt": {
-                    "type": "string"
-                }
-            }
-        },
-        "entity.ViewSurveyResponse": {
-            "type": "object",
-            "properties": {
-                "answers": {
-                    "$ref": "#/definitions/entity.Answers"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "startedAt": {
-                    "type": "string"
-                },
-                "surveySlug": {
-                    "type": "string"
-                }
-            }
-        },
-        "handler.UserProfile": {
-            "type": "object",
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "picture": {
                     "type": "string"
                 }
             }

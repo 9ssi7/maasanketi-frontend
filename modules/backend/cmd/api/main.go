@@ -42,9 +42,8 @@ func (a *Application) Register() {
 	survey := v1.Group("/surveys")
 	survey.Get("/", handler.SurveyList(a.repo.Survey))
 	survey.Get("/:slug", handler.SurveyView(a.repo.Survey))
-	survey.Get("/:slug/stats", handler.SurveyStats(a.repo.Survey))
-	survey.Post("/:slug/responses", handler.SurveyResponseStart(a.repo.Survey))
-	survey.Patch("/:slug/responses/:responseId", handler.SurveyResponseComplete(a.repo.Survey))
+	survey.Post("/:slug/responses", handler.ResponseStart(a.repo.Survey, a.repo.Response))
+	survey.Patch("/:slug/responses/:responseId", handler.ResponseComplete(a.repo.Survey, a.repo.Response))
 
 	user := v1.Group("/user")
 	user.Use(middleware.GoogleAuth()) // Apply Google authentication middleware

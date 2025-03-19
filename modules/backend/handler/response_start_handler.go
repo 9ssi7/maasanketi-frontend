@@ -1,22 +1,31 @@
 package handler
 
 import (
+	"context"
 	"errors"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"github.com/mstrYoda/maasanketi.co/entity"
+	"github.com/mstrYoda/maasanketi.co/domain/response"
+	"github.com/mstrYoda/maasanketi.co/domain/survey"
 	"github.com/mstrYoda/maasanketi.co/pkg/rescode"
-	"github.com/mstrYoda/maasanketi.co/repository"
 )
 
-type SurveyResponseStartRequest struct {
-	SurveySlug  string `params:"slug" validate:"required,slug"`
-	IsAnonymous *bool  `json:"isAnonymous" validate:"required"`
-} // @name SurveyResponseStartRequest
+type ResponseStartSurveyRepo interface {
+	FindBySlug(ctx context.Context, slug string) (*survey.Survey, error)
+}
 
-// SurveyResponseStart starts a new survey response
+type ResponseStartRepo interface {
+	Create(ctx context.Context, response *response.Response) error
+}
+
+type ResponseStartRequest struct {
+	Slug        string `params:"slug" validate:"required,slug"`
+	IsAnonymous *bool  `json:"isAnonymous" validate:"required"`
+} // @name ResponseStartRequest
+
+// ResponseStart starts a new survey response
 // @Summary Start a new survey response
 // @Description Start a new response for a survey
 // @Tags survey-responses
@@ -24,21 +33,21 @@ type SurveyResponseStartRequest struct {
 // @Produce json
 // @Param slug path string true "Survey Slug"
 // @Param isAnonymous body bool false "Is Anonymous"
-// @Success 201 {object} entity.ViewSurveyResponse
+// @Success 201 {object} response.ViewDefault
 // @Failure 400 {object} map[string]interface{}
 // @Failure 404 {object} map[string]interface{}
 // @Failure 500 {object} map[string]interface{}
 // @Router /surveys/{slug}/responses [post]
-func SurveyResponseStart(repo repository.SurveyRepository) fiber.Handler {
+func ResponseStart(surveyRepo ResponseStartSurveyRepo, responseRepo ResponseStartRepo) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		var req SurveyResponseStartRequest
+		var req ResponseStartRequest
 		if err := c.BodyParser(&req); err != nil {
 			return rescode.ValidationFailed(err)
 		}
 		if err := c.ParamsParser(&req); err != nil {
 			return rescode.ValidationFailed(err)
 		}
-		survey, err := repo.FindBySlug(c.UserContext(), req.SurveySlug)
+		survey, err := surveyRepo.FindBySlug(c.UserContext(), req.Slug)
 		if err != nil {
 			return rescode.SurveyNotFound(errors.New("survey not found"))
 		}
@@ -49,10 +58,10 @@ func SurveyResponseStart(repo repository.SurveyRepository) fiber.Handler {
 		}
 
 		// Create a new response
-		response := &entity.SurveyResponse{
+		response := &response.Response{
 			ID:          uuid.New().String(),
 			SurveyID:    survey.ID,
-			Answers:     entity.Answers{},
+			Answers:     response.Answers{},
 			StartedAt:   time.Now(),
 			IPAddress:   c.IP(),
 			UserAgent:   c.Get("User-Agent"),
@@ -61,9 +70,9 @@ func SurveyResponseStart(repo repository.SurveyRepository) fiber.Handler {
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
 		}
-		if err := repo.ResponseCreate(c.UserContext(), response); err != nil {
+		if err := responseRepo.Create(c.UserContext(), response); err != nil {
 			return err
 		}
-		return c.Status(fiber.StatusCreated).JSON(response.ToViewSurveyResponse())
+		return c.Status(fiber.StatusCreated).JSON(response.ToView())
 	}
 }

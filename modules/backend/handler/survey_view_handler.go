@@ -1,10 +1,16 @@
 package handler
 
 import (
+	"context"
+
 	"github.com/gofiber/fiber/v2"
+	"github.com/mstrYoda/maasanketi.co/domain/survey"
 	"github.com/mstrYoda/maasanketi.co/pkg/rescode"
-	"github.com/mstrYoda/maasanketi.co/repository"
 )
+
+type SurveyViewRepo interface {
+	FindBySlug(ctx context.Context, slug string) (*survey.Survey, error)
+}
 
 type SurveyViewRequest struct {
 	Slug string `params:"slug" validate:"required,slug"`
@@ -17,11 +23,11 @@ type SurveyViewRequest struct {
 // @Accept json
 // @Produce json
 // @Param slug path string true "Survey Slug"
-// @Success 200 {object} entity.Survey
+// @Success 200 {object} survey.Survey
 // @Failure 404 {object} map[string]interface{}
 // @Failure 500 {object} map[string]interface{}
 // @Router /surveys/{slug} [get]
-func SurveyView(repo repository.SurveyRepository) fiber.Handler {
+func SurveyView(repo SurveyViewRepo) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var req SurveyViewRequest
 		if err := c.ParamsParser(&req); err != nil {
