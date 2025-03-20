@@ -85,8 +85,12 @@ export interface SurveyListItem {
   createdBy?: string;
   tags?: string[];
   participants: number;
+  isExpired: boolean;
 }
 
+export interface SurveyDetail extends SurveyListItem {
+  questions: Question[];
+}
 export enum SurveySort {
   CreatedAtAsc = "created_at_asc",
   CreatedAtDesc = "created_at_desc",
@@ -126,6 +130,10 @@ export function isSurveyListItem(survey: unknown): survey is SurveyListItem {
 
 export function isSurveyList(surveys: unknown): surveys is SurveyListItem[] {
   return Array.isArray(surveys) && surveys.every(isSurveyListItem)
+}
+
+export function isSurveyDetail(survey: unknown): survey is SurveyDetail {
+  return typeof survey === 'object' && survey !== null && 'id' in survey
 }
 
 export const SurveySortTexts : Record<SurveySort, string> = {

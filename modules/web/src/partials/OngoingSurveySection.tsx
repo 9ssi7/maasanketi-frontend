@@ -44,7 +44,12 @@ export default function OngoingSurveySection({
           data?.list.map((survey) => <SurveyCard key={survey.id} {...survey} />)
         ) : (
           <State.Empty
-            filtered={!!search || !!tag || !!sort || !!hideExpired}
+            filtered={
+              !!search ||
+              !!tag ||
+              sort !== SurveySort.CreatedAtDesc ||
+              hideExpired !== true
+            }
             onClear={onClear}
           />
         )}

@@ -256,6 +256,116 @@ func (r *SurveyRepository) CountParticipants(ctx context.Context, surveyID strin
 	return count, nil
 }
 
+// FindCompletedSurveys finds completed surveys
+func (r *SurveyRepository) FindCompletedSurveys(ctx context.Context, page, limit uint64) ([]*survey.Survey, error) {
+	query := r.sb.Select("surveys.id", "surveys.slug", "surveys.title", "surveys.description", "surveys.min_completion_time_min", "surveys.created_at", "surveys.updated_at", "surveys.created_by", "surveys.tags", "surveys.finishes_at", "COUNT(survey_responses.id) AS participants").
+		From("surveys").
+		LeftJoin("survey_responses ON surveys.id = survey_responses.survey_id").
+		LeftJoin("response_graphs ON surveys.id = response_graphs.survey_id").
+		Where("surveys.finishes_at < NOW()").
+		Where("response_graphs.id IS NULL").
+		OrderBy("surveys.created_at DESC").
+		GroupBy("surveys.id").
+		Limit(limit).Offset(page * limit)
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, rescode.Failed(err)
+	}
+
+	rows, err := r.db.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, rescode.Failed(err)
+	}
+	defer rows.Close()
+
+	var surveys []*survey.Survey
+
+	for rows.Next() {
+		var survey survey.Survey
+		var participants int
+		var dbUUID uuid.UUID
+		var tagsJSON []byte
+		err := rows.Scan(&dbUUID, &survey.Slug, &survey.Title, &survey.Description, &survey.MinCompletionTimeMin, &survey.CreatedAt, &survey.UpdatedAt, &survey.CreatedBy, &tagsJSON, &survey.FinishesAt, &participants)
+		if err != nil {
+			return nil, rescode.Failed(err)
+		}
+
+		survey.ID = dbUUID.String()
+
+		err = json.Unmarshal(tagsJSON, &survey.Tags)
+		if err != nil {
+			return nil, rescode.Failed(err)
+		}
+
+		surveys = append(surveys, &survey)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, rescode.Failed(err)
+	}
+	return surveys, nil
+}
+
+// ViewDetail gets a survey by slug
+func (r *SurveyRepository) ViewDetail(ctx context.Context, slug string) (*survey.ViewDetail, error) {
+	query := r.sb.Select("surveys.id", "surveys.slug", "surveys.title", "surveys.description", "surveys.questions", "surveys.min_completion_time_min", "surveys.created_at", "surveys.updated_at", "surveys.created_by", "surveys.tags", "surveys.finishes_at", "COUNT(survey_responses.id) AS participants").
+		From("surveys").
+		LeftJoin("survey_responses ON surveys.id = survey_responses.survey_id").
+		Where(squirrel.Eq{"slug": slug})
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, rescode.Failed(err)
+	}
+
+	var s survey.Survey
+	var questionsJSON []byte
+	var tagsJSON []byte
+	var dbUUID uuid.UUID
+	var participants int
+
+	err = r.db.QueryRow(ctx, sql, args...).Scan(
+		&dbUUID,
+		&s.Slug,
+		&s.Title,
+		&s.Description,
+		&questionsJSON,
+		&s.MinCompletionTimeMin,
+		&s.CreatedAt,
+		&s.UpdatedAt,
+		&s.CreatedBy,
+		&tagsJSON,
+		&s.FinishesAt,
+		&participants,
+	)
+
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, rescode.SurveyNotFound(err)
+		}
+		return nil, rescode.Failed(err)
+	}
+
+	s.ID = dbUUID.String()
+
+	err = json.Unmarshal(questionsJSON, &s.Questions)
+	if err != nil {
+		return nil, rescode.Failed(err)
+	}
+
+	err = json.Unmarshal(tagsJSON, &s.Tags)
+	if err != nil {
+		return nil, rescode.Failed(err)
+	}
+
+	viewDetail := &survey.ViewDetail{
+		ViewList:  *s.ToListView(participants),
+		Questions: s.Questions,
+	}
+	return viewDetail, nil
+}
+
 // List lists surveys with pagination and filtering
 func (r *SurveyRepository) List(ctx context.Context, req *list.PagiRequest, filterReq *survey.SurveyListFilters) (*list.PagiResponse[*survey.ViewList], error) {
 	// Set default values for pagination
@@ -263,8 +373,8 @@ func (r *SurveyRepository) List(ctx context.Context, req *list.PagiRequest, filt
 
 	// Build the base query
 	baseQuery := r.sb.Select("surveys.id", "surveys.slug", "surveys.title", "surveys.description", "surveys.min_completion_time_min", "surveys.created_at", "surveys.updated_at", "surveys.created_by", "surveys.tags", "surveys.finishes_at", "COUNT(survey_responses.id) AS participants").
-		LeftJoin("survey_responses ON surveys.id = survey_responses.survey_id").
 		From("surveys").
+		LeftJoin("survey_responses ON surveys.id = survey_responses.survey_id").
 		GroupBy("surveys.id")
 
 	// Apply tag filtering if provided
@@ -273,8 +383,12 @@ func (r *SurveyRepository) List(ctx context.Context, req *list.PagiRequest, filt
 	}
 
 	// Filter out expired surveys if requested
-	if filterReq != nil && filterReq.HideExpired {
-		baseQuery = baseQuery.Where("finishes_at IS NULL OR finishes_at > NOW()")
+	if filterReq != nil && filterReq.HideExpired != nil {
+		if *filterReq.HideExpired == "true" {
+			baseQuery = baseQuery.Where("surveys.finishes_at IS NULL OR surveys.finishes_at > NOW()")
+		} else {
+			baseQuery = baseQuery.Where("surveys.finishes_at < NOW()")
+		}
 	}
 
 	// Apply text search if provided

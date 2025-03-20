@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import "../styles/OngoingSurveys.css";
 import OngoingSurveySection from "../partials/OngoingSurveySection";
 import { useRef, useState } from "react";
@@ -9,9 +9,15 @@ import {
 } from "../types/survey.types";
 
 const OngoingSurveys = () => {
+  const [searchParams] = useSearchParams();
   const [sort, setSort] = useState<SurveySort>(SurveySort.CreatedAtDesc);
   const [tag, setTag] = useState<string>("");
   const [search, setSearch] = useState<string>("");
+  const [hideExpired, setHideExpired] = useState<boolean>(
+    searchParams.has("hideExpired")
+      ? searchParams.get("hideExpired") === "true"
+      : true
+  );
   const searchRef = useRef<HTMLInputElement>(null);
   return (
     <div className="ongoing-surveys-container">
@@ -65,10 +71,12 @@ const OngoingSurveys = () => {
         sort={sort}
         tag={tag}
         search={search}
+        hideExpired={hideExpired}
         onClear={() => {
           setSearch("");
           setTag("");
           setSort(SurveySort.CreatedAtDesc);
+          setHideExpired(true);
         }}
       />
       <div className="ongoing-surveys-note">

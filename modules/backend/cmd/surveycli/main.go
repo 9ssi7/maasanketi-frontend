@@ -164,12 +164,9 @@ func main() {
 		}
 
 		resgraph := &resgraph.ResponseGraph{
-			SurveyID: s.ID,
-			GraphID:  g.ID,
-			Content: resgraph.ResponseGraphContent{
-				Keys:   []string{},
-				Values: []string{},
-			},
+			SurveyID:  s.ID,
+			GraphID:   g.ID,
+			Content:   []resgraph.ResponseGraphContent{},
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
 		}

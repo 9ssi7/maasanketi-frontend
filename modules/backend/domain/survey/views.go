@@ -17,7 +17,14 @@ type ViewList struct {
 	Tags                 []string   `json:"tags,omitempty"`
 	Participants         int        `json:"participants"` // Number of completed responses
 	FinishesAt           *time.Time `json:"finishesAt,omitempty"`
+	IsExpired            bool       `json:"isExpired"`
 } // @name survey.ViewList
+
+// ViewDetail represents a survey in a detail view with questions
+type ViewDetail struct {
+	ViewList
+	Questions []Question `json:"questions"`
+} // @name survey.ViewDetail
 
 // ToListItem converts a Survey to a ViewList
 func (s *Survey) ToListView(participants int) *ViewList {
@@ -33,5 +40,6 @@ func (s *Survey) ToListView(participants int) *ViewList {
 		Tags:                 s.Tags,
 		Participants:         participants,
 		FinishesAt:           s.FinishesAt,
+		IsExpired:            s.FinishesAt != nil && s.FinishesAt.Before(time.Now()),
 	}
 }

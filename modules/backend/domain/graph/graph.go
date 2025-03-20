@@ -13,11 +13,28 @@ type Graph struct {
 	UpdatedAt   time.Time    `json:"updatedAt"`
 }
 
+type ValueStrategy string
+
+const (
+	ValueStrategyCount ValueStrategy = "count"
+	ValueStrategySum   ValueStrategy = "sum"
+	ValueStrategyAvg   ValueStrategy = "avg"
+)
+
+type Key struct {
+	Field string `json:"field"`
+	Label string `json:"label"`
+}
+
+type Value struct {
+	Field    string        `json:"field"`
+	Label    string        `json:"label"`
+	Strategy ValueStrategy `json:"strategy"`
+}
+
 type GraphContent struct {
-	KeyFields   []string `json:"keyFields"`
-	KeyLabels   []string `json:"keyLabels"`
-	ValueFields []string `json:"valueFields"`
-	ValueLabels []string `json:"valueLabels"`
+	KeyFields   []Key   `json:"keyFields"`
+	ValueFields []Value `json:"valueFields"`
 }
 
 type Kind string

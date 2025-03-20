@@ -12,6 +12,7 @@ import {
   SurveyAnswers,
   Survey,
   SurveyResponseStartResponse,
+  isSurveyDetail,
 } from "../types/survey.types";
 import { isSuccess } from "../services/base.api";
 
@@ -28,11 +29,11 @@ const SurveyParticipate = () => {
     if (!slug) return;
     surveyGet(slug)
       .then(([survey, status]) => {
-        if (isSuccess(status)) {
-          setSurvey(survey as Survey);
-        } else {
-          setError("Failed to load survey. Please try again later.");
+        if (isSuccess(status) && isSurveyDetail(survey)) {
+          setSurvey(survey);
+          return;
         }
+        setError("Failed to load survey. Please try again later.");
       })
       .finally(() => {
         setIsLoading(false);
@@ -237,7 +238,7 @@ const SurveyParticipate = () => {
       <div className="survey-participate-container">
         <div className="survey-participate-header">
           <h1>Loading Survey...</h1>
-          <Link to="/ongoing-surveys" className="back-link">
+          <Link to="/surveys" className="back-link">
             Back to Surveys
           </Link>
         </div>
@@ -251,7 +252,7 @@ const SurveyParticipate = () => {
         <div className="survey-participate-header">
           <h1>Error</h1>
           <p>{error}</p>
-          <Link to="/ongoing-surveys" className="back-link">
+          <Link to="/surveys" className="back-link">
             Back to Surveys
           </Link>
         </div>
@@ -264,7 +265,7 @@ const SurveyParticipate = () => {
       <div className="survey-participate-container">
         <div className="survey-participate-header">
           <h1>Survey Not Found</h1>
-          <Link to="/ongoing-surveys" className="back-link">
+          <Link to="/surveys" className="back-link">
             Back to Surveys
           </Link>
         </div>
@@ -278,7 +279,7 @@ const SurveyParticipate = () => {
         <div className="survey-participate-header">
           <h1>Thank You!</h1>
           <p>Your response has been recorded.</p>
-          <Link to="/ongoing-surveys" className="back-link">
+          <Link to="/surveys" className="back-link">
             Back to Surveys
           </Link>
         </div>
@@ -288,8 +289,8 @@ const SurveyParticipate = () => {
             Thank you for participating in the survey. Your response will help
             contribute to salary transparency.
           </p>
-          <Link to="/results" className="back-link">
-            View Survey Results
+          <Link to={`/surveys`} className="back-link">
+            View Other Surveys
           </Link>
         </div>
       </div>
@@ -301,7 +302,7 @@ const SurveyParticipate = () => {
       <div className="survey-participate-header">
         <h1>{survey.title}</h1>
         <p>Participate in this salary survey to contribute to transparency</p>
-        <Link to="/ongoing-surveys" className="back-link">
+        <Link to="/surveys" className="back-link">
           Back to Surveys
         </Link>
       </div>

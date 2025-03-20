@@ -11,9 +11,9 @@ function App() {
     <div className="app">
       <Routes>
         <Route path="/" element={<Landing />} />
-        <Route path="/results" element={<Results />} />
         <Route path="/create-survey" element={<CreateSurvey />} />
-        <Route path="/ongoing-surveys" element={<OngoingSurveys />} />
+        <Route path="/surveys" element={<OngoingSurveys />} />
+        <Route path="/surveys/:slug/results" element={<Results />} />
         <Route
           path="/surveys/:slug/participate"
           element={<SurveyParticipate />}

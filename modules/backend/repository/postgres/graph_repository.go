@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/Masterminds/squirrel"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/mstrYoda/maasanketi.co/domain/graph"
 	"github.com/mstrYoda/maasanketi.co/pkg/rescode"
@@ -24,7 +25,7 @@ func NewGraphRepository(db *pgxpool.Pool) *GraphRepository {
 
 func (r *GraphRepository) Create(ctx context.Context, graph *graph.Graph) error {
 	query := r.sb.Insert("graphs").
-		Columns("id", "survey_id", "title", "description", "kind", "content", "created_at", "updated_at")
+		Columns("survey_id", "title", "description", "kind", "content", "created_at", "updated_at")
 
 	contentJSON, err := json.Marshal(graph.Content)
 	if err != nil {
@@ -32,8 +33,7 @@ func (r *GraphRepository) Create(ctx context.Context, graph *graph.Graph) error 
 	}
 
 	query = query.Values(
-		graph.ID,
-		graph.SurveyID,
+		uuid.MustParse(graph.SurveyID),
 		graph.Title,
 		graph.Description,
 		graph.Kind,

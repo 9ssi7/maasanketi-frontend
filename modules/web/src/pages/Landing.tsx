@@ -12,18 +12,21 @@ const Landing = () => {
   return (
     <div className="landing-container">
       {/* Hero Section */}
-      <div className={`landing-hero ${isLoaded ? 'loaded' : ''}`}>
+      <div className={`landing-hero ${isLoaded ? "loaded" : ""}`}>
         <div className="hero-content">
-          <h1>Software Engineer Salary <span className="highlight">Insights</span></h1>
+          <h1>
+            Software Engineer Salary <span className="highlight">Insights</span>
+          </h1>
           <p className="hero-description">
-            Empowering transparency in the tech industry through data-driven salary insights.
-            Create, participate, and explore software engineering compensation trends.
+            Empowering transparency in the tech industry through data-driven
+            salary insights. Create, participate, and explore software
+            engineering compensation trends.
           </p>
           <div className="hero-buttons">
-            <Link to="/ongoing-surveys" className="primary-button">
+            <Link to="/surveys" className="primary-button">
               Participate Now
             </Link>
-            <Link to="/results" className="secondary-button">
+            <Link to="/surveys?hideExpired=false" className="secondary-button">
               Explore Data
             </Link>
           </div>
@@ -41,7 +44,7 @@ const Landing = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Features Section */}
       <div className="features-section">
         <h2 className="section-title">What You Can Do</h2>
@@ -49,32 +52,41 @@ const Landing = () => {
           <div className="landing-card">
             <div className="card-icon create-icon"></div>
             <h3>Create a Survey</h3>
-            <p>Design custom salary surveys to gather insights that matter to your community</p>
+            <p>
+              Design custom salary surveys to gather insights that matter to
+              your community
+            </p>
             <Link to="/create-survey" className="card-link">
               Get Started <span className="arrow">→</span>
             </Link>
           </div>
-          
+
           <div className="landing-card">
             <div className="card-icon participate-icon"></div>
             <h3>Ongoing Surveys</h3>
-            <p>Contribute to active surveys and help build a more transparent industry</p>
+            <p>
+              Contribute to active surveys and help build a more transparent
+              industry
+            </p>
             <Link to="/ongoing-surveys" className="card-link">
               View Surveys <span className="arrow">→</span>
             </Link>
           </div>
-          
+
           <div className="landing-card">
             <div className="card-icon results-icon"></div>
             <h3>Explore Results</h3>
-            <p>Discover salary trends and make informed career decisions with our analytics</p>
+            <p>
+              Discover salary trends and make informed career decisions with our
+              analytics
+            </p>
             <Link to="/results" className="card-link">
               See Insights <span className="arrow">→</span>
             </Link>
           </div>
         </div>
       </div>
-      
+
       {/* Statistics Section */}
       <div className="stats-section">
         <div className="stat-card">
@@ -94,21 +106,27 @@ const Landing = () => {
           <span className="stat-label">Years of Data</span>
         </div>
       </div>
-      
+
       {/* CTA Section */}
       <div className="cta-section">
         <h2>Ready to contribute to salary transparency?</h2>
-        <p>Join thousands of software engineers making the industry more equitable through data sharing</p>
+        <p>
+          Join thousands of software engineers making the industry more
+          equitable through data sharing
+        </p>
         <Link to="/create-survey" className="cta-button">
           Start Now
         </Link>
       </div>
-      
+
       <footer className="landing-footer">
         <div className="footer-content">
           <div className="footer-info">
             <h3>Software Engineer Salary Survey</h3>
-            <p>Helping improve salary transparency in the software engineering industry</p>
+            <p>
+              Helping improve salary transparency in the software engineering
+              industry
+            </p>
           </div>
           <div className="footer-links">
             <div className="link-group">
@@ -126,7 +144,10 @@ const Landing = () => {
           </div>
         </div>
         <div className="footer-bottom">
-          <p>© {new Date().getFullYear()} Software Engineer Salary Insights. All data is anonymized.</p>
+          <p>
+            © {new Date().getFullYear()} Software Engineer Salary Insights. All
+            data is anonymized.
+          </p>
         </div>
       </footer>
     </div>

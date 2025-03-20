@@ -1,5 +1,5 @@
 import { ListResponse } from './../types/base.types';
-import { Survey, SurveyAnswers, SurveyListItem, SurveyResponseStartResponse, SurveyStats } from "../types/survey.types"
+import { SurveyAnswers, SurveyDetail, SurveyListItem, SurveyResponseStartResponse, SurveyStats } from "../types/survey.types"
 import { req, withQuery } from "./base.api"
 
 export const surveyList = async(q?: string) => {
@@ -7,7 +7,7 @@ export const surveyList = async(q?: string) => {
 }
 
 export const surveyGet = async(slug: string) => {
-    return req<Survey>(`api/v1/surveys/${slug}`)
+    return req<SurveyDetail>(`api/v1/surveys/${slug}`)
 }
 
 export const surveyResponseStart = async(slug: string, isAnonymous: boolean) => {

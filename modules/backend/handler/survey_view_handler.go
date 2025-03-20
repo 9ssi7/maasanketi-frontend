@@ -9,7 +9,7 @@ import (
 )
 
 type SurveyViewRepo interface {
-	FindBySlug(ctx context.Context, slug string) (*survey.Survey, error)
+	ViewDetail(ctx context.Context, slug string) (*survey.ViewDetail, error)
 }
 
 type SurveyViewRequest struct {
@@ -33,7 +33,7 @@ func SurveyView(repo SurveyViewRepo) fiber.Handler {
 		if err := c.ParamsParser(&req); err != nil {
 			return rescode.ValidationFailed(err)
 		}
-		survey, err := repo.FindBySlug(c.UserContext(), req.Slug)
+		survey, err := repo.ViewDetail(c.UserContext(), req.Slug)
 		if err != nil {
 			return err
 		}

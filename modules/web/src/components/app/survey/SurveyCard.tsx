@@ -14,12 +14,28 @@ export default function SurveyCard({ ...survey }: Props) {
           <span className="stat-label">Participants:</span>
           <span className="stat-value">{survey.participants}</span>
         </div>
-        <div className="stat-item">
-          <span className="stat-label">Closing:</span>
-          <span className="stat-value">
-            {new Date(survey.updatedAt).toLocaleDateString()}
-          </span>
-        </div>
+        {!survey.isExpired && (
+          <div className="stat-item">
+            <span className="stat-label">Closing:</span>
+            <span className="stat-value">
+              {new Date(survey.updatedAt).toLocaleDateString()}
+            </span>
+          </div>
+        )}
+        {survey.isExpired && (
+          <>
+            <div className="stat-item">
+              <span className="stat-label">Expired:</span>
+              <span className="stat-value">Yes</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-label">Closed at:</span>
+              <span className="stat-value">
+                {new Date(survey.updatedAt).toLocaleDateString()}
+              </span>
+            </div>
+          </>
+        )}
         {survey.createdBy && (
           <div className="stat-item">
             <span className="stat-label">Created by:</span>
@@ -29,13 +45,22 @@ export default function SurveyCard({ ...survey }: Props) {
       </div>
 
       <div className="survey-actions">
-        <Link
-          to={`/surveys/${survey.slug}/participate`}
-          className="participate-button"
-        >
-          Participate
-        </Link>
-        <button className="details-button">View Details</button>
+        {!survey.isExpired && (
+          <Link
+            to={`/surveys/${survey.slug}/participate`}
+            className="participate-button"
+          >
+            Participate
+          </Link>
+        )}
+        {survey.isExpired && (
+          <Link
+            to={`/surveys/${survey.slug}/results`}
+            className="participate-button"
+          >
+            View Results
+          </Link>
+        )}
       </div>
     </div>
   );

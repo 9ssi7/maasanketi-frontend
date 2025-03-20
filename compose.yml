@@ -15,6 +15,17 @@ services:
     networks:
       - maasanketi-network
 
+  worker:
+    build: 
+      context: ./modules/backend
+      dockerfile: Dockerfile.worker
+    environment:
+      DB_CONN_STR: postgres://postgres:s1cr1t@postgres:5432/postgres
+    depends_on:
+      - postgres
+    networks:
+      - maasanketi-network
+
   postgres:
     image: postgres:17.4
     environment:
