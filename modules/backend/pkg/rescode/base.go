@@ -17,6 +17,7 @@ var (
 
 	SurveyNotFound                 = New(1200, http.StatusNotFound, "survey_not_found")
 	SurveyExpired                  = New(1201, http.StatusBadRequest, "survey_expired")
+	SurveyNotFinished              = New(1202, http.StatusBadRequest, "survey_not_finished")
 	SurveyResponseNotFound         = New(1202, http.StatusNotFound, "survey_response_not_found")
 	SurveyResponseValidationFailed = New(1203, http.StatusBadRequest, "survey_response_validation_failed")
 	SurveyResponseNotCompleted     = New(1204, http.StatusBadRequest, "survey_response_not_completed")

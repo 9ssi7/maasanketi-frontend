@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/mstrYoda/maasanketi.co/domain/graph"
 	"github.com/mstrYoda/maasanketi.co/domain/resgraph"
 	"github.com/mstrYoda/maasanketi.co/domain/response"
@@ -99,7 +98,6 @@ func (s *GraphGenerationService) generateGraphsForSurvey(ctx context.Context, su
 func (s *GraphGenerationService) processGraph(ctx context.Context, g *graph.Graph, responses []*response.Response) error {
 	// Create a new response graph
 	responseGraph := &resgraph.ResponseGraph{
-		ID:        uuid.New().String(),
 		SurveyID:  g.SurveyID,
 		GraphID:   g.ID,
 		Content:   []resgraph.ResponseGraphContent{},
@@ -179,8 +177,8 @@ func (s *GraphGenerationService) generateGraphContent(g *graph.Graph, responses 
 		// Sort keys for consistent output
 		keyData := data[key.Field]
 
-		for keyStr, vals := range keyData {
-			labels = append(labels, keyStr)
+		for _, vals := range keyData {
+			labels = append(labels, key.Label)
 
 			// Process each value field
 			for i, value := range g.Content.ValueFields {

@@ -25,6 +25,22 @@ definitions:
       page:
         type: integer
     type: object
+  graph.Kind:
+    enum:
+    - bar
+    - line
+    - radar
+    - area
+    - scatter
+    - pie
+    type: string
+    x-enum-varnames:
+    - KindBar
+    - KindLine
+    - KindRadar
+    - KindArea
+    - KindScatter
+    - KindPie
   handler.UserProfile:
     properties:
       email:
@@ -34,6 +50,40 @@ definitions:
       name:
         type: string
       picture:
+        type: string
+    type: object
+  resgraph.ResponseGraphContent:
+    properties:
+      labels:
+        items:
+          type: string
+        type: array
+      values:
+        items:
+          type: string
+        type: array
+    type: object
+  resgraph.ViewList:
+    properties:
+      content:
+        items:
+          $ref: '#/definitions/resgraph.ResponseGraphContent'
+        type: array
+      createdAt:
+        type: string
+      description:
+        type: string
+      graphId:
+        type: string
+      id:
+        type: string
+      kind:
+        $ref: '#/definitions/graph.Kind'
+      surveyId:
+        type: string
+      title:
+        type: string
+      updatedAt:
         type: string
     type: object
   response.Answers:
@@ -143,6 +193,8 @@ definitions:
         type: string
       id:
         type: string
+      isExpired:
+        type: boolean
       minCompletionTimeMin:
         type: integer
       participants:
@@ -381,6 +433,42 @@ paths:
       summary: Complete a survey response
       tags:
       - survey-responses
+  /surveys/{slug}/results:
+    get:
+      consumes:
+      - application/json
+      description: List all survey results
+      parameters:
+      - description: Survey Slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/resgraph.ViewList'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: List all survey results
+      tags:
+      - survey-results
 schemes:
 - http
 - https

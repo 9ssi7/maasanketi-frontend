@@ -24,7 +24,7 @@ func NewResponseGraphRepository(db *pgxpool.Pool) *ResponseGraphRepository {
 
 func (r *ResponseGraphRepository) Create(ctx context.Context, responseGraph *resgraph.ResponseGraph) error {
 	query := r.sb.Insert("response_graphs").
-		Columns("id", "survey_id", "graph_id", "content", "created_at", "updated_at")
+		Columns("survey_id", "graph_id", "content", "created_at", "updated_at")
 
 	contentJSON, err := json.Marshal(responseGraph.Content)
 	if err != nil {
@@ -32,7 +32,6 @@ func (r *ResponseGraphRepository) Create(ctx context.Context, responseGraph *res
 	}
 
 	query = query.Values(
-		responseGraph.ID,
 		responseGraph.SurveyID,
 		responseGraph.GraphID,
 		contentJSON,
@@ -103,10 +102,12 @@ func (r *ResponseGraphRepository) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (r *ResponseGraphRepository) ListBySurveyID(ctx context.Context, surveyID string) ([]*resgraph.ResponseGraph, error) {
-	query := r.sb.Select("id", "survey_id", "graph_id", "content", "created_at", "updated_at").
+func (r *ResponseGraphRepository) ListBySurveyID(ctx context.Context, surveyID string) ([]*resgraph.ViewList, error) {
+	query := r.sb.Select("response_graphs.id", "response_graphs.survey_id", "response_graphs.graph_id", "response_graphs.content", "response_graphs.created_at", "response_graphs.updated_at", "graphs.title", "graphs.description", "graphs.kind", "graphs.content").
 		From("response_graphs").
-		Where(squirrel.Eq{"survey_id": surveyID})
+		LeftJoin("graphs ON response_graphs.graph_id = graphs.id").
+		Where("response_graphs.survey_id = ?", surveyID).
+		OrderBy("response_graphs.created_at DESC")
 
 	sql, args, err := query.ToSql()
 	if err != nil {
@@ -119,10 +120,10 @@ func (r *ResponseGraphRepository) ListBySurveyID(ctx context.Context, surveyID s
 	}
 	defer rows.Close()
 
-	var responseGraphs []*resgraph.ResponseGraph
+	var responseGraphs []*resgraph.ViewList
 
 	for rows.Next() {
-		var responseGraph resgraph.ResponseGraph
+		var responseGraph resgraph.ViewList
 		var contentJSON []byte
 
 		err = rows.Scan(
@@ -132,6 +133,10 @@ func (r *ResponseGraphRepository) ListBySurveyID(ctx context.Context, surveyID s
 			&contentJSON,
 			&responseGraph.CreatedAt,
 			&responseGraph.UpdatedAt,
+			&responseGraph.Title,
+			&responseGraph.Description,
+			&responseGraph.Kind,
+			&responseGraph.GraphContent,
 		)
 		if err != nil {
 			return nil, rescode.Failed(err)
@@ -205,7 +210,7 @@ func (r *ResponseGraphRepository) Update(ctx context.Context, responseGraph *res
 	query := r.sb.Update("response_graphs").
 		Set("content", responseGraph.Content).
 		Set("updated_at", responseGraph.UpdatedAt).
-		Where(squirrel.Eq{"id": responseGraph.ID})
+		Where("id = ?", responseGraph.ID)
 
 	sql, args, err := query.ToSql()
 	if err != nil {

@@ -263,7 +263,7 @@ func (r *SurveyRepository) FindCompletedSurveys(ctx context.Context, page, limit
 		LeftJoin("survey_responses ON surveys.id = survey_responses.survey_id").
 		LeftJoin("response_graphs ON surveys.id = response_graphs.survey_id").
 		Where("surveys.finishes_at < NOW()").
-		Where("response_graphs.id IS NULL").
+		Where("response_graphs.id = '00000000-0000-0000-0000-000000000000' OR response_graphs.id IS NULL").
 		OrderBy("surveys.created_at DESC").
 		GroupBy("surveys.id").
 		Limit(limit).Offset(page * limit)
@@ -312,7 +312,8 @@ func (r *SurveyRepository) ViewDetail(ctx context.Context, slug string) (*survey
 	query := r.sb.Select("surveys.id", "surveys.slug", "surveys.title", "surveys.description", "surveys.questions", "surveys.min_completion_time_min", "surveys.created_at", "surveys.updated_at", "surveys.created_by", "surveys.tags", "surveys.finishes_at", "COUNT(survey_responses.id) AS participants").
 		From("surveys").
 		LeftJoin("survey_responses ON surveys.id = survey_responses.survey_id").
-		Where(squirrel.Eq{"slug": slug})
+		Where(squirrel.Eq{"slug": slug}).
+		GroupBy("surveys.id")
 
 	sql, args, err := query.ToSql()
 	if err != nil {

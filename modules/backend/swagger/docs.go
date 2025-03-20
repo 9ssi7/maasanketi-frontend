@@ -334,6 +334,59 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/surveys/{slug}/results": {
+            "get": {
+                "description": "List all survey results",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "survey-results"
+                ],
+                "summary": "List all survey results",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Survey Slug",
+                        "name": "slug",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/resgraph.ViewList"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -374,6 +427,25 @@ const docTemplate = `{
                 }
             }
         },
+        "graph.Kind": {
+            "type": "string",
+            "enum": [
+                "bar",
+                "line",
+                "radar",
+                "area",
+                "scatter",
+                "pie"
+            ],
+            "x-enum-varnames": [
+                "KindBar",
+                "KindLine",
+                "KindRadar",
+                "KindArea",
+                "KindScatter",
+                "KindPie"
+            ]
+        },
         "handler.UserProfile": {
             "type": "object",
             "properties": {
@@ -387,6 +459,58 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "picture": {
+                    "type": "string"
+                }
+            }
+        },
+        "resgraph.ResponseGraphContent": {
+            "type": "object",
+            "properties": {
+                "labels": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "values": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "resgraph.ViewList": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/resgraph.ResponseGraphContent"
+                    }
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "graphId": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "kind": {
+                    "$ref": "#/definitions/graph.Kind"
+                },
+                "surveyId": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updatedAt": {
                     "type": "string"
                 }
             }
@@ -547,6 +671,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "string"
+                },
+                "isExpired": {
+                    "type": "boolean"
                 },
                 "minCompletionTimeMin": {
                     "type": "integer"

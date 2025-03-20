@@ -1,6 +1,7 @@
 import { ListResponse } from './../types/base.types';
-import { SurveyAnswers, SurveyDetail, SurveyListItem, SurveyResponseStartResponse, SurveyStats } from "../types/survey.types"
+import { SurveyAnswers, SurveyDetail, SurveyListItem, SurveyResponseStartResponse } from "../types/survey.types"
 import { req, withQuery } from "./base.api"
+import { ResponseGraphListItem } from '../types/response-graph.types';
 
 export const surveyList = async(q?: string) => {
     return req<ListResponse<SurveyListItem>>(withQuery("api/v1/surveys", q))
@@ -24,6 +25,6 @@ export const surveyResponseComplete = async(slug: string, responseId: string, an
     })
 }
 
-export const surveyStats = async(slug: string) => {
-    return req<SurveyStats>(`api/v1/surveys/${slug}/stats`)
+export const surveyGetResults = async(slug: string) => {
+    return req<ResponseGraphListItem[]>(`api/v1/surveys/${slug}/results`)
 }
