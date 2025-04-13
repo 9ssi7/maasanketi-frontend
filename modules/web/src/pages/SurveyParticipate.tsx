@@ -15,6 +15,7 @@ import {
   isSurveyDetail,
 } from "../types/survey.types";
 import { isSuccess } from "../services/base.api";
+import { handleApiErrorResult } from "../services/error";
 
 const SurveyParticipate = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -69,16 +70,19 @@ const SurveyParticipate = () => {
 
     try {
       setIsLoading(true);
-      const [, status] = await surveyResponseComplete(slug, responseId, values);
+      const [res, status] = await surveyResponseComplete(
+        slug,
+        responseId,
+        values
+      );
 
       if (isSuccess(status)) {
         setStep(3); // Success step
       } else {
-        setError("Failed to submit survey. Please try again later.");
+        handleApiErrorResult(res, {});
       }
     } catch (err) {
-      setError("Failed to submit survey. Please try again later.");
-      console.error("Error submitting survey:", err);
+      handleApiErrorResult(err, {});
     } finally {
       setIsLoading(false);
       setSubmitting(false);

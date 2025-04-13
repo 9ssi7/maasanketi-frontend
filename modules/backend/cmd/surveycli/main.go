@@ -164,6 +164,7 @@ func main() {
 		}
 
 		resgraph := &resgraph.ResponseGraph{
+			ID:        uuid.New().String(),
 			SurveyID:  s.ID,
 			GraphID:   g.ID,
 			Content:   []resgraph.ResponseGraphContent{},

@@ -31,7 +31,7 @@ type SurveyListResponse struct {
 // @Param sort query string false "Sort field (created_at_asc, created_at_desc, most_participants, finishes_at_asc, finishes_at_desc)"
 // @Param hideExpired query bool false "Hide expired surveys"
 // @Param search query string false "Text search query for title and description"
-// @Success 200 {object} SurveyListResponse
+// @Success 200 {object} list.PagiResponse[survey.ViewList]
 // @Failure 400 {object} map[string]interface{}
 // @Failure 500 {object} map[string]interface{}
 // @Router /surveys [get]
@@ -50,6 +50,7 @@ func SurveyList(repo SurveyListRepo) fiber.Handler {
 		if err != nil {
 			return err
 		}
+		_ = list.PagiResponse[survey.ViewList]{}
 
 		return c.JSON(response)
 	}

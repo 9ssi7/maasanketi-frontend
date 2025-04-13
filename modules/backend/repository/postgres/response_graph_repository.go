@@ -24,7 +24,7 @@ func NewResponseGraphRepository(db *pgxpool.Pool) *ResponseGraphRepository {
 
 func (r *ResponseGraphRepository) Create(ctx context.Context, responseGraph *resgraph.ResponseGraph) error {
 	query := r.sb.Insert("response_graphs").
-		Columns("survey_id", "graph_id", "content", "created_at", "updated_at")
+		Columns("id", "survey_id", "graph_id", "content", "created_at", "updated_at")
 
 	contentJSON, err := json.Marshal(responseGraph.Content)
 	if err != nil {
@@ -32,6 +32,7 @@ func (r *ResponseGraphRepository) Create(ctx context.Context, responseGraph *res
 	}
 
 	query = query.Values(
+		responseGraph.ID,
 		responseGraph.SurveyID,
 		responseGraph.GraphID,
 		contentJSON,

@@ -24,8 +24,9 @@ func NewGraphRepository(db *pgxpool.Pool) *GraphRepository {
 }
 
 func (r *GraphRepository) Create(ctx context.Context, graph *graph.Graph) error {
+	graph.ID = uuid.New().String()
 	query := r.sb.Insert("graphs").
-		Columns("survey_id", "title", "description", "kind", "content", "created_at", "updated_at")
+		Columns("id", "survey_id", "title", "description", "kind", "content", "created_at", "updated_at")
 
 	contentJSON, err := json.Marshal(graph.Content)
 	if err != nil {
@@ -33,6 +34,7 @@ func (r *GraphRepository) Create(ctx context.Context, graph *graph.Graph) error 
 	}
 
 	query = query.Values(
+		graph.ID,
 		uuid.MustParse(graph.SurveyID),
 		graph.Title,
 		graph.Description,
